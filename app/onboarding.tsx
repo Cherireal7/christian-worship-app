@@ -1,118 +1,238 @@
-import { Link, router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { useRef, useState } from 'react';
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const slides = [
-  {
-    id: 'welcome',
-    icon: '✝',
-    title: 'Welcome to the Worship Guide',
-    description:
-      'Read hymns, prayers, and creeds anytime. Designed for quiet and focused worship.',
-  },
-  {
-    id: 'hymns',
-    icon: '♪',
-    title: 'Hymns and Sacred Texts',
-    description:
-      'Browse hymns, creeds, and prayers in one place. Simple and easy to read during worship.',
-  },
-  {
-    id: 'offline',
-    icon: '▣',
-    title: 'Worship Anywhere',
-    description:
-      'Access hymns and prayers even without internet. Your worship guide is always with you.',
-  },
-];
-
-function IconBadge({ icon }: { icon: string }) {
-  return (
-    <View className="items-center justify-center">
-      <View className="h-28 w-28 items-center justify-center rounded-[32px] border border-slate-900/10 bg-white/60">
-        <Text className="text-6xl font-black text-slate-950">{icon}</Text>
-      </View>
-    </View>
-  );
-}
-
-function Pagination({ activeIndex }: { activeIndex: number }) {
-  return (
-    <View className="mt-8 flex-row items-center justify-center gap-3">
-      {slides.map((slide, index) => (
-        <View
-          key={slide.id}
-          className={
-            index === activeIndex
-              ? 'h-3 w-3 rounded-full bg-white'
-              : 'h-3 w-3 rounded-full bg-[#17397A]'
-          }
-        />
-      ))}
-    </View>
-  );
-}
+import { OnboardingSlide } from '../components/ui/onboarding-slide';
+import { ONBOARDING_SLIDES } from '../constants/onboarding';
 
 export default function OnboardingScreen() {
+  const scrollRef = useRef<ScrollView>(null);
+  const { width } = useWindowDimensions();
   const [activeIndex, setActiveIndex] = useState(0);
-  const slide = slides[activeIndex];
-  const isLast = activeIndex === slides.length - 1;
+  const slide = ONBOARDING_SLIDES[activeIndex];
+  const isFirst = activeIndex === 0;
+  const isLast = activeIndex === ONBOARDING_SLIDES.length - 1;
 
-  function goNext() {
+  function scrollToIndex(index: number) {
+    scrollRef.current?.scrollTo({ x: width * index, animated: true });
+    setActiveIndex(index);
+  }
+
+  function handleMomentumScrollEnd(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    const nextIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+    setActiveIndex(nextIndex);
+  }
+
+  function handleNext() {
     if (isLast) {
       router.replace('/(tabs)');
       return;
     }
 
-    setActiveIndex(current => current + 1);
+    scrollToIndex(activeIndex + 1);
+  }
+
+  function handleBack() {
+    if (isFirst) {
+      return;
+    }
+
+    scrollToIndex(activeIndex - 1);
   }
 
   return (
-    <View className="flex-1 overflow-hidden bg-[#E8F7FB]">
-      <View className="absolute left-0 top-0 h-72 w-full bg-slate-50/90" />
-      <View className="absolute bottom-0 left-0 right-0 h-[48%] bg-[#0D2E6A]" />
-      <View className="absolute bottom-[26%] left-0 h-44 w-full -skew-y-[18deg] bg-[#1B5FA7]" />
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.topBackground} />
+        <View style={styles.bottomBackground} />
+        <View style={styles.diagonalBand} />
 
-      <View className="flex-1 px-7 pb-10 pt-8">
-        <View className="flex-row items-center justify-between">
-          <Pressable
-            accessibilityLabel="Back"
-            className="h-10 w-10 items-center justify-center rounded-full"
-            disabled={activeIndex === 0}
-            onPress={() => setActiveIndex(current => Math.max(0, current - 1))}
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <View style={styles.leadingSlot}>
+              {!isFirst ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Go back"
+                  hitSlop={12}
+                  onPress={handleBack}
+                  style={styles.backButton}
+                >
+                  <Text style={styles.backArrow}>←</Text>
+                </Pressable>
+              ) : null}
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Skip onboarding"
+              hitSlop={12}
+              onPress={() => router.replace('/(tabs)')}
+            >
+              <Text style={styles.skipText}>Skip</Text>
+            </Pressable>
+          </View>
+
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            bounces={false}
+            onMomentumScrollEnd={handleMomentumScrollEnd}
+            style={styles.slider}
+            contentContainerStyle={styles.sliderContent}
           >
-            <Text className={activeIndex === 0 ? 'text-slate-300' : 'text-2xl text-slate-950'}>
-              ←
-            </Text>
-          </Pressable>
+            {ONBOARDING_SLIDES.map(item => (
+              <View key={item.id} style={[styles.slidePage, { width }]}>
+                <OnboardingSlide slide={item} />
+              </View>
+            ))}
+          </ScrollView>
 
-          <Link href="/(tabs)" className="text-base text-slate-700">
-            Skip
-          </Link>
+          <View style={styles.footer}>
+            <View style={styles.pagination}>
+              {ONBOARDING_SLIDES.map((item, index) => (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.paginationDot,
+                    index === activeIndex
+                      ? styles.paginationDotActive
+                      : styles.paginationDotInactive,
+                  ]}
+                />
+              ))}
+            </View>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={handleNext}
+              style={styles.primaryButton}
+            >
+              <Text style={styles.primaryButtonText}>{slide.buttonText}</Text>
+            </Pressable>
+          </View>
         </View>
-
-        <View className="flex-1 items-center justify-center">
-          <IconBadge icon={slide.icon} />
-
-          <Text className="mt-10 max-w-[260px] text-center text-4xl font-black leading-tight text-slate-950">
-            {slide.title}
-          </Text>
-          <Text className="mt-6 max-w-[280px] text-center text-base leading-8 text-slate-700">
-            {slide.description}
-          </Text>
-        </View>
-
-        <Pagination activeIndex={activeIndex} />
-
-        <Pressable
-          className="mt-6 rounded-2xl bg-[#3E68C1] px-6 py-4"
-          onPress={goNext}
-        >
-          <Text className="text-center text-2xl font-semibold text-white">
-            {isLast ? 'Get Started' : 'Next'}
-          </Text>
-        </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#081C4A',
+  },
+  container: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: '#081C4A',
+  },
+  topBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#081C4A',
+  },
+  bottomBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '50%',
+    backgroundColor: '#0E3A8A',
+  },
+  diagonalBand: {
+    position: 'absolute',
+    left: -48,
+    right: -48,
+    bottom: '24%',
+    height: 154,
+    backgroundColor: '#38BDF8',
+    opacity: 0.28,
+    transform: [{ rotate: '-12deg' }],
+  },
+  content: {
+    flex: 1,
+    paddingTop: 8,
+    paddingBottom: 28,
+  },
+  header: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 28,
+  },
+  leadingSlot: {
+    width: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 28,
+    color: '#F8FAFC',
+  },
+  skipText: {
+    fontSize: 20,
+    color: '#E2E8F0',
+    fontWeight: '600',
+  },
+  slider: {
+    flex: 1,
+  },
+  sliderContent: {
+    flexGrow: 1,
+  },
+  slidePage: {
+    flex: 1,
+  },
+  footer: {
+    paddingHorizontal: 28,
+    paddingBottom: 8,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 24,
+  },
+  paginationDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 999,
+  },
+  paginationDotActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  paginationDotInactive: {
+    backgroundColor: 'rgba(226, 232, 240, 0.45)',
+  },
+  primaryButton: {
+    borderRadius: 14,
+    backgroundColor: '#1D4ED8',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+  },
+  primaryButtonText: {
+    textAlign: 'center',
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+});

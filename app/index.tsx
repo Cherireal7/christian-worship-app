@@ -1,53 +1,111 @@
-import { Link } from 'expo-router';
-import { Text, View } from 'react-native';
+import { useEffect } from "react";
+import {
+  Image,
+  ImageBackground,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-function LutherSeal() {
+export default function IndexScreen() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace("/onboarding");
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <View className="items-center justify-center">
-      <View className="h-56 w-56 items-center justify-center rounded-full border border-white/40 bg-slate-900/20">
-        <View className="h-48 w-48 items-center justify-center rounded-full border border-white/30">
-          <View className="h-36 w-36 items-center justify-center rounded-full border border-white/20">
-            <View className="h-16 w-16 items-center justify-center rounded-full border border-white/70 bg-slate-900/40">
-              <View className="h-10 w-2 rounded-full bg-white" />
-              <View className="absolute h-2 w-10 rounded-full bg-white" />
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-export default function SplashScreen() {
-  return (
-    <View className="flex-1 overflow-hidden bg-[#0B143B]">
-      <View className="absolute inset-0 bg-slate-950/25" />
-      <View className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-sky-200/35 blur-3xl" />
-      <View className="absolute -right-20 bottom-0 h-72 w-72 rounded-full bg-slate-100/20 blur-3xl" />
-      <View className="absolute inset-x-0 top-24 items-center opacity-20">
-        <View className="h-96 w-64 rounded-[120px] bg-slate-100/20" />
-      </View>
-
-      <View className="flex-1 items-center justify-center px-8 pb-20 pt-16">
-        <View className="mb-10 opacity-95">
-          <LutherSeal />
-        </View>
-
-        <Text className="text-center text-4xl font-black tracking-tight text-white">
-          Lutheran Worship Guide
-        </Text>
-        <Text className="mt-4 max-w-xs text-center text-base leading-7 text-slate-200">
-          Hymns, sacred texts, and prayer guidance for personal devotion and
-          congregational worship.
-        </Text>
-
-        <Link
-          href="/onboarding"
-          className="mt-12 rounded-2xl bg-[#3E68C1] px-10 py-4 text-center text-lg font-semibold text-white"
+        <ImageBackground
+            source={require("../assets/images/cover.png")}
+            style={styles.background}
+            resizeMode="cover"
         >
-          Enter Guide
-        </Link>
+          <SafeAreaView style={styles.safeArea}>
+            <View style={styles.overlay} />
+
+            <View style={styles.content}>
+              <Image
+                  source={require("../assets/images/luthericon.png")}
+                  style={styles.logo}
+                  resizeMode="contain"
+              />
+
+              <Text style={styles.amharicTitle}>የአምልኮ መመሪያ</Text>
+              <Text style={styles.subtitle}>የክርስቲያን አምልኮ መመሪያ</Text>
+            </View>
+
+            <View style={styles.bottomGlow} />
+          </SafeAreaView>
+        </ImageBackground>
       </View>
-    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#061D63",
+  },
+  background: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(7, 20, 77, 0.68)",
+  },
+  content: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 28,
+    zIndex: 2,
+  },
+  logo: {
+    width: 250,
+    height: 250,
+    marginBottom: 26,
+  },
+  amharicTitle: {
+    fontSize: 30,
+    lineHeight: 40,
+    color: "#F3F0E8",
+    textAlign: "center",
+    marginBottom: 14,
+    letterSpacing: 0.4,
+    fontWeight: "600",
+  },
+  subtitle: {
+    fontSize: 17,
+    lineHeight: 24,
+    color: "#F5F5F5",
+    textAlign: "center",
+    fontWeight: "500",
+    opacity: 0.95,
+  },
+  bottomGlow: {
+    position: "absolute",
+    bottom: -40,
+    width: "130%",
+    height: 220,
+    borderTopLeftRadius: 220,
+    borderTopRightRadius: 220,
+    backgroundColor: "rgba(219, 242, 255, 0.42)",
+    opacity: 0.9,
+    zIndex: 1,
+  },
+});
