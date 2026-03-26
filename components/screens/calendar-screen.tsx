@@ -15,11 +15,18 @@ import { getAccentColor, getLiturgicalColorStyle } from '../../data/liturgicalCo
 import { getAppTheme } from '../../constants/theme';
 
 type MarkedDate = {
-  dots: Array<{ key: string; color: string }>;
+  dots?: Array<{ key?: string; color: string }>;
   marked?: boolean;
   selected?: boolean;
   selectedColor?: string;
   selectedTextColor?: string;
+};
+
+type DayComponentProps = {
+  date?: DateData;
+  state?: 'selected' | 'disabled' | 'today' | string;
+  marking?: MarkedDate;
+  onPress?: (date?: DateData) => void;
 };
 
 function cleanLiturgicalText(text: string | null) {
@@ -57,6 +64,58 @@ function ReadingRow({
   );
 }
 
+function LiturgicalDayCell({
+  date,
+  state,
+  marking,
+  onPress,
+  darkMode,
+}: DayComponentProps & { darkMode: boolean }) {
+  if (!date) {
+    return <View style={styles.dayCell} />;
+  }
+
+  const isSelected = Boolean(marking?.selected || state === 'selected');
+  const isMuted = state === 'disabled' || state === 'inactive';
+  const dayTextColor = darkMode ? '#F8FAFC' : '#10244D';
+  const mutedTextColor = darkMode ? '#94A3B8' : '#64748B';
+  const selectedTextColor = typeof marking?.selectedTextColor === 'string' ? marking.selectedTextColor : dayTextColor;
+
+  return (
+    <Pressable
+      onPress={() => onPress?.(date)}
+      style={[
+        styles.dayCell,
+        isSelected && {
+          backgroundColor:
+            typeof marking?.selectedColor === 'string'
+              ? marking.selectedColor
+              : darkMode
+                ? '#14336C'
+                : '#DCE7F8',
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.dayCellText,
+          {
+            color: isSelected ? selectedTextColor : isMuted ? mutedTextColor : dayTextColor,
+          },
+        ]}
+      >
+        {date.day}
+      </Text>
+
+      <View style={styles.dayDotsRow}>
+        {marking?.dots?.map(dot => (
+          <View key={dot.key ?? dot.color ?? 'dot'} style={[styles.dayDot, { backgroundColor: dot.color ?? '#888' }]} />
+        ))}
+      </View>
+    </Pressable>
+  );
+}
+
 export function CalendarScreen() {
   const { darkMode, fontScale } = useAppPreferences();
   const theme = getAppTheme(darkMode);
@@ -75,6 +134,53 @@ export function CalendarScreen() {
   const liturgicalColorStyle = selectedDay
     ? getLiturgicalColorStyle(selectedDay.color, darkMode)
     : getLiturgicalColorStyle('Green', darkMode);
+  const lightModeDayText = '#10244D';
+
+  const calendarTheme = {
+    calendarBackground: 'transparent',
+    monthTextColor: theme.text,
+    selectedDayTextColor: darkMode ? theme.text : lightModeDayText,
+    textMonthFontWeight: '800',
+    textMonthFontSize: 18 * fontScale,
+    arrowColor: selectedAccent,
+    dayTextColor: darkMode ? theme.text : lightModeDayText,
+    textDisabledColor: darkMode ? theme.textMuted : '#64748B',
+    textInactiveColor: darkMode ? theme.textMuted : '#64748B',
+    textSectionTitleColor: darkMode ? theme.textMuted : lightModeDayText,
+    todayTextColor: darkMode ? '#FFFFFF' : lightModeDayText,
+    textDayFontSize: 15 * fontScale,
+    textDayHeaderFontSize: 12 * fontScale,
+    textDayFontWeight: '600',
+    textDayHeaderFontWeight: '700',
+    'stylesheet.day.basic': {
+      text: {
+        color: darkMode ? theme.text : lightModeDayText,
+      },
+      selectedText: {
+        color: darkMode ? theme.text : lightModeDayText,
+      },
+      todayText: {
+        color: darkMode ? '#FFFFFF' : lightModeDayText,
+      },
+      disabledText: {
+        color: darkMode ? theme.textMuted : '#64748B',
+      },
+      inactiveText: {
+        color: darkMode ? theme.textMuted : '#64748B',
+      },
+    },
+    'stylesheet.calendar.header': {
+      monthText: {
+        color: darkMode ? theme.text : lightModeDayText,
+      },
+      dayHeader: {
+        color: darkMode ? theme.textMuted : lightModeDayText,
+      },
+      disabledDayHeader: {
+        color: darkMode ? theme.textMuted : '#64748B',
+      },
+    },
+  } as Record<string, unknown>;
 
   const markedDates = useMemo<Record<string, MarkedDate>>(() => {
     const nextMarkedDates: Record<string, MarkedDate> = {};
@@ -102,8 +208,8 @@ export function CalendarScreen() {
       nextMarkedDates[today.date] = {
         ...(nextMarkedDates[today.date] ?? { dots: [] }),
         selected: true,
-        selectedColor: accent,
-        selectedTextColor: '#FFFFFF',
+        selectedColor: darkMode ? accent : `${accent}22`,
+        selectedTextColor: darkMode ? '#FFFFFF' : lightModeDayText,
       };
     }
 
@@ -112,12 +218,12 @@ export function CalendarScreen() {
         ...(nextMarkedDates[selectedDateKey] ?? { dots: [] }),
         selected: true,
         selectedColor: darkMode ? '#14336C' : '#DCE7F8',
-        selectedTextColor: theme.text,
+        selectedTextColor: darkMode ? theme.text : lightModeDayText,
       };
     }
 
     return nextMarkedDates;
-  }, [calendarGrid, darkMode, selectedDateKey, theme.text, today]);
+  }, [calendarGrid, darkMode, lightModeDayText, selectedDateKey, theme.text, today]);
 
   const handleDayPress = ({ dateString }: DateData) => {
     setSelectedDate(dateString);
@@ -180,23 +286,11 @@ export function CalendarScreen() {
             onDayPress={handleDayPress}
             onMonthChange={handleMonthChange}
             markingType="multi-dot"
-            markedDates={markedDates}
+            markedDates={markedDates as never}
+            dayComponent={props => <LiturgicalDayCell {...props} darkMode={darkMode} />}
             enableSwipeMonths
             firstDay={0}
-            theme={{
-              calendarBackground: 'transparent',
-              monthTextColor: theme.text,
-              textMonthFontWeight: '800',
-              textMonthFontSize: 18 * fontScale,
-              arrowColor: selectedAccent,
-              dayTextColor: theme.text,
-              textDisabledColor: theme.textMuted,
-              todayTextColor: '#FFFFFF',
-              textDayFontSize: 15 * fontScale,
-              textDayHeaderFontSize: 12 * fontScale,
-              textDayFontWeight: '600',
-              textDayHeaderFontWeight: '700',
-            }}
+            theme={calendarTheme}
             style={styles.calendar}
           />
         </View>
@@ -358,6 +452,30 @@ const styles = StyleSheet.create({
   },
   calendar: {
     borderRadius: 18,
+  },
+  dayCell: {
+    width: 34,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
+    paddingTop: 6,
+  },
+  dayCellText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  dayDotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 4,
+    minHeight: 6,
+  },
+  dayDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 999,
   },
   detailCard: {
     borderRadius: 22,
