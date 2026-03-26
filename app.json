@@ -29,7 +29,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#D8A24F"
+        }
+      ],
+      "expo-font"
     ],
     "extra": {
       "router": {},

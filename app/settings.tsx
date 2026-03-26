@@ -28,7 +28,14 @@ const FONT_OPTIONS = [
 ] as const;
 
 export default function SettingsScreen() {
-  const { darkMode, setDarkMode, fontSize, setFontSize } = useAppPreferences();
+  const {
+    darkMode,
+    setDarkMode,
+    fontSize,
+    setFontSize,
+    notificationsEnabled,
+    setNotificationsEnabled,
+  } = useAppPreferences();
   const theme = getAppTheme(darkMode);
 
   return (
@@ -108,6 +115,26 @@ export default function SettingsScreen() {
             onValueChange={setDarkMode}
             trackColor={{ false: 'rgba(148, 163, 184, 0.4)', true: `${theme.accent}66` }}
             thumbColor={darkMode ? theme.control : '#FFFFFF'}
+          />
+        </View>
+
+        <View style={[styles.settingRow, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
+          <View style={styles.settingInfo}>
+            <View style={[styles.iconBubble, { backgroundColor: theme.control, borderColor: theme.border }]}>
+              <Feather name="bell" size={18} color={theme.accent} />
+            </View>
+            <View>
+              <Text style={[styles.settingTitle, { color: theme.text }]}>የማስታወሻ ማንቂያዎች</Text>
+              <Text style={[styles.settingSubtitle, { color: theme.textMuted }]}>
+                በየጠዋቱ 7:00 የዕለቱ ንባቦች፣ የቅዱሳን ቀናት እና የእሁድ ንባቦችን ያስታውሳል።
+              </Text>
+            </View>
+          </View>
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={setNotificationsEnabled}
+            trackColor={{ false: 'rgba(148, 163, 184, 0.4)', true: `${theme.accent}66` }}
+            thumbColor={notificationsEnabled ? theme.control : '#FFFFFF'}
           />
         </View>
 

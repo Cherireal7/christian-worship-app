@@ -42,3 +42,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# local planning docs
+implementation-plan.md
+project.md

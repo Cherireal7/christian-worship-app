@@ -393,7 +393,16 @@ export function getDay(date: Date | string | Dayjs): LiturgicalDay {
   const festivalPropers = lsbFestivals.filter(
     entry => entry.month === month && entry.day === calendarDay,
   );
-  const dailyRaw = lsbDaily.filter(entry => entry.month === month && entry.day === calendarDay);
+  const dailyFixed = lsbDaily.filter(
+    entry => (entry.week ?? null) === null && entry.month === month && entry.day === calendarDay,
+  );
+  const dailyWeekBased =
+    weekNum === null
+      ? []
+      : lsbDaily.filter(
+          entry => entry.week === weekNum && entry.day === d.day(),
+        );
+  const dailyRaw = [...dailyFixed, ...dailyWeekBased];
   const commemorations = lsbCommemorations.filter(
     entry => entry.month === month && entry.day === calendarDay,
   );

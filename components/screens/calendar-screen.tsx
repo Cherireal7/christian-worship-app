@@ -290,6 +290,13 @@ export function CalendarScreen() {
             dayComponent={props => <LiturgicalDayCell {...props} darkMode={darkMode} />}
             enableSwipeMonths
             firstDay={0}
+            renderArrow={direction => (
+              <Feather
+                name={direction === 'left' ? 'chevron-left' : 'chevron-right'}
+                size={22}
+                color={selectedAccent}
+              />
+            )}
             theme={calendarTheme}
             style={styles.calendar}
           />
