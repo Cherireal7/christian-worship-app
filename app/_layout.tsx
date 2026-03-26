@@ -4,17 +4,34 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-export default function RootLayout() {
+import { AppPreferencesProvider, useAppPreferences } from '../components/providers/app-preferences';
+import { LiturgicalProvider } from '../data/LiturgicalContext';
+
+function RootNavigator() {
+  const { darkMode } = useAppPreferences();
+
   return (
-    <SafeAreaProvider>
-      <StatusBar style="light" />
+    <>
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#020617' },
+          contentStyle: { backgroundColor: darkMode ? '#020617' : '#E7EEF9' },
           animation: 'fade',
         }}
       />
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <SafeAreaProvider>
+      <AppPreferencesProvider>
+        <LiturgicalProvider>
+          <RootNavigator />
+        </LiturgicalProvider>
+      </AppPreferencesProvider>
     </SafeAreaProvider>
   );
 }

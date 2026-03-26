@@ -19,6 +19,7 @@ export default function IndexScreen() {
     return () => clearTimeout(timer);
   }, []);
 
+
   return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
