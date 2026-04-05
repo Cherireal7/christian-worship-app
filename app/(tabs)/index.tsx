@@ -1,6 +1,7 @@
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
+import dayjs from 'dayjs';
 import {
   ImageBackground,
   Pressable,
@@ -12,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppPreferences } from '../../components/providers/app-preferences';
+import { useLiturgical } from '../../data/LiturgicalContext';
 import { getAppTheme } from '../../constants/theme';
 
 function HomeCrossMark() {
@@ -65,8 +67,27 @@ function HomeActionCard({ title, subtitle, href, backgroundColor }: HomeActionCa
 
 export default function LibraryHomeScreen() {
   const { darkMode, fontScale } = useAppPreferences();
+  const { today } = useLiturgical();
   const theme = getAppTheme(darkMode);
   const actionCardColor = darkMode ? '#0E3A8A' : '#10244D';
+  const dayName =
+    today?.festivalTitle ||
+    today?.moveableFeast ||
+    today?.saintsDay ||
+    today?.weekName ||
+    today?.season ||
+    'የዕለቱ ንባብ';
+  const assignedReadings = today
+    ? (today.isSunday || today.isFestival
+        ? [today.propers.oldTestament, today.propers.epistle, today.propers.gospel]
+        : [today.dailyReadings.firstReading, today.dailyReadings.secondReading]
+      ).filter((reading): reading is string => Boolean(reading))
+    : [];
+  const readingSummary =
+    assignedReadings.join(' • ') || 'የዕለቱ ንባቦች እዚህ ይታያሉ።';
+  const readingMeta = today
+    ? `${today.season} • ${dayjs(today.date).format('MMMM D, YYYY')}`
+    : 'ዛሬ';
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -99,28 +120,37 @@ export default function LibraryHomeScreen() {
               backgroundColor={actionCardColor}
             />
             <HomeActionCard
-              title="የእምነት መግለጫ"
-              subtitle="Declaration of Faith."
+              title="የእምነት ኑዛዜዎች"
+              subtitle="Confessions of Faith"
               href="/declaration-of-faith"
               backgroundColor={actionCardColor}
             />
           </View>
 
-          <ImageBackground
-            imageStyle={styles.verseCardImage}
-            source={require('../../assets/images/cover.png')}
-            style={[styles.verseCard, { borderColor: theme.border }]}
-          >
-            <View style={styles.verseOverlay} />
-            <View style={styles.verseCrossWrap}>
-              <Ionicons name="add" size={30} color={theme.text} />
-            </View>
-            <Text style={[styles.verseTitle, { color: theme.text, fontSize: 19 * fontScale }]}>የዕለቱ ቃል</Text>
-            <Text style={[styles.verseText, { color: theme.text, fontSize: 14 * fontScale, lineHeight: 21 * fontScale }]}>
-              መጽሐፍ ቅዱስ በሙሉ ከእግዚአብሔር መንፈስ የተነሣ የተጻፈ ነው።
-            </Text>
-            <Text style={[styles.verseReference, { color: theme.text, fontSize: 13 * fontScale }]}>2 ጢሞቴዎስ 3:16</Text>
-          </ImageBackground>
+          <Pressable onPress={() => today && router.push(`/calendar/${today.date}`)} disabled={!today}>
+            <ImageBackground
+              imageStyle={styles.verseCardImage}
+              source={require('../../assets/images/cover.png')}
+              style={[styles.verseCard, { borderColor: theme.border }]}
+            >
+              <View style={styles.verseOverlay} />
+              <View style={styles.verseCrossWrap}>
+                <Ionicons name="calendar-outline" size={28} color="#F8FAFC" />
+              </View>
+              <Text style={[styles.verseTitle, { color: '#F8FAFC', fontSize: 18 * fontScale }]} numberOfLines={2}>
+                {dayName}
+              </Text>
+              <Text
+                style={[styles.verseText, { color: '#F8FAFC', fontSize: 13 * fontScale, lineHeight: 20 * fontScale }]}
+                numberOfLines={3}
+              >
+                {readingSummary}
+              </Text>
+              <Text style={[styles.verseReference, { color: '#F8FAFC', fontSize: 12 * fontScale }]} numberOfLines={1}>
+                {readingMeta}
+              </Text>
+            </ImageBackground>
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>

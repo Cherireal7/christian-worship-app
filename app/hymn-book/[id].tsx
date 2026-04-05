@@ -28,9 +28,8 @@ export default function HymnDetailScreen() {
   const hymn = params.id ? getHymnById(params.id) : undefined;
   const insets = useSafeAreaInsets();
   const [fontScale, setFontScale] = useState(1);
-  const [favorite, setFavorite] = useState(false);
   const [textAlignMode, setTextAlignMode] = useState<'left' | 'center' | 'right'>('center');
-  const { darkMode, fontScale: appFontScale } = useAppPreferences();
+  const { darkMode, fontScale: appFontScale, isFavorite, toggleFavorite } = useAppPreferences();
   const theme = getAppTheme(darkMode);
 
   if (!hymn) {
@@ -56,6 +55,7 @@ export default function HymnDetailScreen() {
       : textAlignMode === 'center'
         ? 'align-center'
         : 'align-right';
+  const favorite = isFavorite('hymn', hymn.id);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -80,7 +80,7 @@ export default function HymnDetailScreen() {
             </Text>
 
             <Pressable
-              onPress={() => setFavorite(current => !current)}
+              onPress={() => toggleFavorite('hymn', hymn.id)}
               style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
             >
               <Feather
@@ -114,10 +114,10 @@ export default function HymnDetailScreen() {
           </View>
         </ScrollView>
 
-        <View style={[styles.bottomControls, { bottom: Math.max(insets.bottom, 10) }]}>
+        <View style={[styles.bottomControls, { bottom: Math.max(insets.bottom, 18) }]}>
           <View style={[styles.leftControls, { backgroundColor: theme.control, borderColor: theme.border }]}>
             <Pressable onPress={() => router.replace('/hymn-book')} style={styles.controlButton}>
-              <Feather name="menu" size={18} color={theme.text} />
+              <Feather name="chevron-left" size={18} color={theme.text} />
             </Pressable>
             <Pressable
               onPress={() => setTextAlignMode(nextAlignMode)}
@@ -286,8 +286,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   controlButton: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',

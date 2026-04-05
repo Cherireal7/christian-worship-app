@@ -1,4 +1,4 @@
-import { CONFESSION_RECORDS } from '../data/confessions';
+import confessionsData from '../data/confessions.json';
 
 export type Confession = {
   id: string;
@@ -8,7 +8,7 @@ export type Confession = {
   body: string;
 };
 
-export const CONFESSIONS: Confession[] = CONFESSION_RECORDS;
+export const CONFESSIONS: Confession[] = confessionsData as Confession[];
 
 export function getConfessionById(id: string) {
   return CONFESSIONS.find(confession => confession.id === id);

@@ -1,19 +1,20 @@
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
+  FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HYMNS, HYMN_CATEGORIES, type HymnCategory } from '../../constants/hymns';
+import { HYMNS, type Hymn } from '../../constants/hymns';
 import { getAppTheme } from '../../constants/theme';
+import { buildSearchForms } from '../../services/amharic-search';
 import { useAppPreferences } from '../providers/app-preferences';
 import { QuickNavMenu } from '../ui/quick-nav-menu';
 
@@ -33,154 +34,180 @@ function DividerMark() {
 
 export function HymnBookScreen() {
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<HymnCategory>('all');
-  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
+  const [showFloatingSearch, setShowFloatingSearch] = useState(false);
   const { darkMode, fontScale } = useAppPreferences();
   const theme = getAppTheme(darkMode);
+  const insets = useSafeAreaInsets();
 
-  const normalizedQuery = query.trim().toLowerCase();
-  const hymns = HYMNS.filter(hymn => {
-    const matchesCategory =
-      selectedCategory === 'all' ? true : hymn.category === selectedCategory;
-    const haystack = `${hymn.number} ${hymn.title} ${hymn.subtitle} ${hymn.opening}`.toLowerCase();
-    const matchesQuery = normalizedQuery.length === 0 ? true : haystack.includes(normalizedQuery);
+  const hymns = useMemo(() => {
+    const normalizedQuery = query.trim();
 
-    return matchesCategory && matchesQuery;
-  });
+    if (normalizedQuery.length === 0) {
+      return HYMNS;
+    }
 
-  const selectedCategoryLabel =
-    HYMN_CATEGORIES.find(category => category.key === selectedCategory)?.label ?? 'ሁሉም መዝሙሮች';
+    const queryForms = buildSearchForms(normalizedQuery);
+
+    return HYMNS.filter(hymn => {
+      if (queryForms.original && hymn.searchOriginal.includes(queryForms.original)) {
+        return true;
+      }
+
+      if (queryForms.latin && hymn.searchLatin.includes(queryForms.latin)) {
+        return true;
+      }
+
+      if (queryForms.skeleton.length >= 2 && hymn.searchSkeleton.includes(queryForms.skeleton)) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [query]);
+
+  function renderHymnItem({ item }: { item: Hymn }) {
+    return (
+      <Pressable
+        onPress={() => router.push(`/hymn-book/${item.id}`)}
+        style={[styles.hymnRow, { backgroundColor: theme.surfaceStrong, borderBottomColor: theme.divider }]}
+      >
+        <View style={styles.hymnNumberWrap}>
+          <Text style={[styles.hymnNumber, { color: theme.accent, fontSize: 20 * fontScale }]}>
+            {item.number}
+          </Text>
+        </View>
+
+        <View style={styles.hymnTextWrap}>
+          <Text style={[styles.hymnTitle, { color: theme.text, fontSize: 20 * fontScale }]} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text
+            style={[styles.hymnOpening, { color: theme.textMuted, fontSize: 13 * fontScale }]}
+            numberOfLines={2}
+          >
+            {item.opening}
+          </Text>
+        </View>
+
+        <View style={[styles.hymnArrowWrap, { backgroundColor: theme.surface }]}>
+          <Ionicons name="chevron-forward" size={18} color={theme.text} />
+        </View>
+      </Pressable>
+    );
+  }
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerRow}>
-          <QuickNavMenu />
-          <Pressable
-            onPress={() => router.push('/settings')}
-            style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
-          >
-            <Feather name="settings" size={18} color={theme.text} />
-          </Pressable>
-        </View>
-
-        <View style={styles.heroSection}>
-          <View style={styles.topGlow} />
-          <Text style={[styles.heroTitle, { color: theme.text, fontSize: 18 * fontScale, lineHeight: 28 * fontScale }]}>
-            የክርስቲያን አምልኮ መመሪያ
-          </Text>
-          <Text style={[styles.heroSubtitle, { color: theme.textMuted, fontSize: 12 * fontScale }]}>
-            Christians worship guide
-          </Text>
-          <DividerMark />
-        </View>
-
-        <View style={styles.controlsRow}>
-          <View style={[styles.searchShell, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      {showFloatingSearch ? (
+        <View
+          style={[
+            styles.floatingSearchWrap,
+            {
+              top: Math.max(insets.top + 52, 64),
+            },
+          ]}
+          pointerEvents="box-none"
+        >
+          <View style={[styles.searchShell, styles.floatingSearchShell, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Feather name="search" size={19} color={theme.textMuted} />
             <TextInput
-              placeholder="ፈልግ..."
+              placeholder="በቁጥር ወይም በርዕስ ፈልግ..."
               placeholderTextColor={theme.textMuted}
               selectionColor={theme.accent}
               style={[styles.searchInput, { color: theme.text, fontSize: 16 * fontScale }]}
               value={query}
               onChangeText={setQuery}
             />
-          </View>
-
-          <View style={styles.filterWrap}>
-            <Pressable
-              onPress={() => setCategoryMenuOpen(open => !open)}
-              style={[styles.filterButton, { backgroundColor: theme.control, borderColor: theme.border }]}
-            >
-              <Text style={[styles.filterLabel, { color: theme.text, fontSize: 13 * fontScale }]} numberOfLines={1}>
-                {selectedCategoryLabel}
-              </Text>
-              <Ionicons
-                name={categoryMenuOpen ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color={theme.text}
-              />
-            </Pressable>
-
-            {categoryMenuOpen ? (
-              <View style={[styles.filterMenu, { backgroundColor: theme.control, borderColor: theme.border }]}>
-                {HYMN_CATEGORIES.map(category => {
-                  const active = category.key === selectedCategory;
-
-                  return (
-                    <Pressable
-                      key={category.key}
-                      onPress={() => {
-                        setSelectedCategory(category.key);
-                        setCategoryMenuOpen(false);
-                      }}
-                      style={[styles.filterMenuItem, active ? styles.filterMenuItemActive : null]}
-                    >
-                      <Text
-                        style={[
-                          styles.filterMenuText,
-                          { color: active ? theme.accent : theme.textMuted, fontSize: 13 * fontScale },
-                        ]}
-                      >
-                        {category.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+            {query.length > 0 ? (
+              <Pressable onPress={() => setQuery('')} style={styles.clearButton}>
+                <Ionicons name="close" size={18} color={theme.textMuted} />
+              </Pressable>
             ) : null}
           </View>
         </View>
+      ) : null}
 
-        <View style={styles.metaRow}>
-          <Text style={[styles.metaText, { color: theme.accent, fontSize: 13 * fontScale }]}>
-            {hymns.length} መዝሙሮች
-          </Text>
-          <Text style={[styles.metaTextSecondary, { color: theme.textMuted, fontSize: 12 * fontScale }]}>
-            ለመክፈት ይጫኑ
-          </Text>
-        </View>
+      <FlatList
+        data={hymns}
+        keyExtractor={item => item.id}
+        renderItem={renderHymnItem}
+        style={styles.list}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={18}
+        maxToRenderPerBatch={18}
+        windowSize={8}
+        removeClippedSubviews
+        onScroll={event => {
+          const nextVisible = event.nativeEvent.contentOffset.y > 170;
+          if (nextVisible !== showFloatingSearch) {
+            setShowFloatingSearch(nextVisible);
+          }
+        }}
+        scrollEventThrottle={16}
+        ListHeaderComponent={
+          <>
+            <View style={styles.headerRow}>
+              <QuickNavMenu />
+              <Pressable
+                onPress={() => router.push('/settings')}
+                style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
+              >
+                <Feather name="settings" size={18} color={theme.text} />
+              </Pressable>
+            </View>
 
-        <View style={[styles.listWrap, { borderTopColor: theme.divider, backgroundColor: theme.surface }]}>
-          {hymns.map(hymn => (
-            <Pressable
-              key={hymn.id}
-              onPress={() => router.push(`/hymn-book/${hymn.id}`)}
-              style={[styles.hymnRow, { backgroundColor: theme.surfaceStrong, borderBottomColor: theme.divider }]}
-            >
-              <View style={styles.hymnNumberWrap}>
-                <Text style={[styles.hymnNumber, { color: theme.accent, fontSize: 28 * fontScale }]}>{hymn.number}</Text>
+            <View style={styles.heroSection}>
+              <View style={styles.topGlow} />
+              <Text style={[styles.heroTitle, { color: theme.text, fontSize: 18 * fontScale, lineHeight: 28 * fontScale }]}>
+                የክርስቲያን አምልኮ መዝሙር መጽሐፍ
+              </Text>
+              <Text style={[styles.heroSubtitle, { color: theme.textMuted, fontSize: 12 * fontScale }]}>
+                በቁጥር እና በርዕስ የሚፈለጉ መዝሙሮች
+              </Text>
+              <DividerMark />
+            </View>
+
+            <View style={styles.controlsRow}>
+              <View style={[styles.searchShell, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <Feather name="search" size={19} color={theme.textMuted} />
+                <TextInput
+                  placeholder="በቁጥር ወይም በርዕስ ፈልግ..."
+                  placeholderTextColor={theme.textMuted}
+                  selectionColor={theme.accent}
+                  style={[styles.searchInput, { color: theme.text, fontSize: 16 * fontScale }]}
+                  value={query}
+                  onChangeText={setQuery}
+                />
+                {query.length > 0 ? (
+                  <Pressable onPress={() => setQuery('')} style={styles.clearButton}>
+                    <Ionicons name="close" size={18} color={theme.textMuted} />
+                  </Pressable>
+                ) : null}
               </View>
+            </View>
 
-              <View style={styles.hymnTextWrap}>
-                <Text style={[styles.hymnTitle, { color: theme.text, fontSize: 22 * fontScale }]}>{hymn.title}</Text>
-                <Text style={[styles.hymnOpening, { color: theme.textMuted, fontSize: 13 * fontScale }]} numberOfLines={1}>
-                  {hymn.opening}
-                </Text>
-              </View>
-
-              <View style={[styles.hymnArrowWrap, { backgroundColor: theme.surface }]}>
-                <Ionicons name="chevron-forward" size={18} color={theme.text} />
-              </View>
-            </Pressable>
-          ))}
-
-          {hymns.length === 0 ? (
-            <View style={[styles.emptyState, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
-              <Feather name="search" size={22} color={theme.textMuted} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>ምንም መዝሙር አልተገኘም</Text>
-              <Text style={[styles.emptyDescription, { color: theme.textMuted }]}>
-                የፍለጋ ቃልዎን ወይም ማጣሪያውን ይቀይሩ።
+            <View style={styles.metaRow}>
+              <Text style={[styles.metaText, { color: theme.accent, fontSize: 13 * fontScale }]}>
+                {hymns.length} መዝሙሮች
+              </Text>
+              <Text style={[styles.metaTextSecondary, { color: theme.textMuted, fontSize: 12 * fontScale }]}>
+                ለመክፈት ይጫኑ
               </Text>
             </View>
-          ) : null}
-        </View>
-      </ScrollView>
+          </>
+        }
+        ListEmptyComponent={
+          <View style={[styles.emptyState, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
+            <Feather name="search" size={22} color={theme.textMuted} />
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>ምንም መዝሙር አልተገኘም</Text>
+            <Text style={[styles.emptyDescription, { color: theme.textMuted }]}>
+              የፍለጋ ቃልዎን ይቀይሩ።
+            </Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -189,6 +216,15 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#06164B',
+  },
+  floatingSearchWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    zIndex: 20,
+  },
+  list: {
+    flex: 1,
   },
   contentContainer: {
     paddingHorizontal: 16,
@@ -275,9 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(216, 162, 79, 0.78)',
   },
   controlsRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
+    marginBottom: 10,
     zIndex: 2,
   },
   searchShell: {
@@ -303,52 +337,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: 14,
   },
-  filterWrap: {
-    width: 138,
-    position: 'relative',
-  },
-  filterButton: {
-    minHeight: 54,
+  clearButton: {
+    width: 28,
+    height: 28,
     borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(248, 250, 252, 0.2)',
-    backgroundColor: 'rgba(12, 32, 79, 0.72)',
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
+    justifyContent: 'center',
   },
-  filterLabel: {
-    color: '#F8FAFC',
-    fontSize: 13,
-    fontWeight: '700',
-    flex: 1,
-    marginRight: 8,
-  },
-  filterMenu: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    borderRadius: 18,
-    backgroundColor: 'rgba(7, 23, 63, 0.96)',
-    borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.16)',
-    paddingVertical: 8,
-    shadowColor: '#020617',
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 12 },
+  floatingSearchShell: {
+    shadowOpacity: 0.24,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
     elevation: 10,
   },
-  filterMenuItem: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  filterMenuItemActive: {
-    backgroundColor: 'rgba(216, 162, 79, 0.12)',
-  },
-  filterMenuText: { fontSize: 13, fontWeight: '600' },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -365,13 +366,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 12,
   },
-  listWrap: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(226, 232, 240, 0.16)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
   hymnRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -380,15 +374,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(226, 232, 240, 0.18)',
     backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 24,
+    marginBottom: 10,
   },
   hymnNumberWrap: {
-    width: 48,
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
   },
   hymnNumber: {
     color: '#D8A24F',
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   },
   hymnTextWrap: {
     flex: 1,
@@ -396,13 +395,14 @@ const styles = StyleSheet.create({
   },
   hymnTitle: {
     color: '#F8FAFC',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     marginBottom: 4,
   },
   hymnOpening: {
     color: '#CBD5E1',
     fontSize: 13,
+    lineHeight: 20,
   },
   hymnArrowWrap: {
     width: 30,
@@ -419,6 +419,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 22,
     paddingVertical: 36,
+    marginTop: 12,
   },
   emptyTitle: {
     color: '#F8FAFC',

@@ -28,9 +28,8 @@ export default function ConfessionDetailScreen() {
   const confession = params.id ? getConfessionById(params.id) : undefined;
   const insets = useSafeAreaInsets();
   const [fontScale, setFontScale] = useState(1);
-  const [favorite, setFavorite] = useState(false);
   const [textAlignMode, setTextAlignMode] = useState<'left' | 'center' | 'right'>('center');
-  const { darkMode, fontScale: appFontScale } = useAppPreferences();
+  const { darkMode, fontScale: appFontScale, isFavorite, toggleFavorite } = useAppPreferences();
   const theme = getAppTheme(darkMode);
 
   if (!confession) {
@@ -42,7 +41,7 @@ export default function ConfessionDetailScreen() {
             onPress={() => router.replace('/declaration-of-faith')}
             style={styles.backHomeButton}
           >
-            <Text style={styles.backHomeText}>ወደ መግለጫዎች ተመለስ</Text>
+            <Text style={styles.backHomeText}>ወደ ኑዛዜዎች ተመለስ</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -59,6 +58,7 @@ export default function ConfessionDetailScreen() {
       : textAlignMode === 'center'
         ? 'align-center'
         : 'align-right';
+  const favorite = isFavorite('confession', confession.id);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -80,7 +80,7 @@ export default function ConfessionDetailScreen() {
             </Text>
 
             <Pressable
-              onPress={() => setFavorite(current => !current)}
+              onPress={() => toggleFavorite('confession', confession.id)}
               style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
             >
               <Feather
@@ -112,13 +112,13 @@ export default function ConfessionDetailScreen() {
           </View>
         </ScrollView>
 
-        <View style={[styles.bottomControls, { bottom: Math.max(insets.bottom, 10) }]}>
+        <View style={[styles.bottomControls, { bottom: Math.max(insets.bottom, 18) }]}>
           <View style={[styles.leftControls, { backgroundColor: theme.control, borderColor: theme.border }]}>
             <Pressable
               onPress={() => router.replace('/declaration-of-faith')}
               style={styles.controlButton}
             >
-              <Feather name="menu" size={18} color={theme.text} />
+              <Feather name="chevron-left" size={18} color={theme.text} />
             </Pressable>
             <Pressable
               onPress={() => setTextAlignMode(nextAlignMode)}
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, backgroundColor: 'rgba(20, 51, 108, 0.96)',
     borderWidth: 1, borderColor: 'rgba(226, 232, 240, 0.08)', paddingHorizontal: 10, paddingVertical: 8,
   },
-  controlButton: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  controlButton: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   controlButtonActive: { backgroundColor: 'rgba(255, 255, 255, 0.08)' },
   typeButton: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   typeButtonText: { color: '#F8FAFC', fontSize: 22, lineHeight: 22, fontWeight: '500' },

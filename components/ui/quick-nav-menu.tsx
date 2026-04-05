@@ -47,7 +47,7 @@ const NAV_SECTIONS: NavSection[] = [
         icon: color => <Feather name="heart" size={18} color={color} />,
       },
       {
-        label: 'ቅንብሮች',
+        label: 'ማስተካከያ',
         route: '/settings',
         matches: ['/settings'],
         icon: color => <Feather name="settings" size={18} color={color} />,
@@ -66,7 +66,7 @@ const NAV_SECTIONS: NavSection[] = [
         ),
       },
       {
-        label: 'መግለጫዎች',
+        label: 'ኑዛዜዎች',
         route: '/declaration-of-faith',
         matches: ['/declaration-of-faith'],
         icon: color => <Ionicons name="document-text-outline" size={18} color={color} />,
@@ -164,7 +164,7 @@ export function QuickNavMenu() {
         onPress={() => setOpen(true)}
         style={[styles.button, { backgroundColor: theme.control, borderColor: theme.border }]}
       >
-        <Feather name="menu" size={18} color={theme.text} />
+        <Feather name="menu" size={20} color={theme.text} />
       </Pressable>
 
       {mounted ? (
@@ -270,8 +270,8 @@ export function QuickNavMenu() {
 
 const styles = StyleSheet.create({
   button: {
-    width: 38,
-    height: 38,
+    width: 46,
+    height: 46,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',

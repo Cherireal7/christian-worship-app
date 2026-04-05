@@ -5,7 +5,11 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAppPreferences } from '../../components/providers/app-preferences';
+import {
+  useAppPreferences,
+  type FavoriteKind,
+} from '../../components/providers/app-preferences';
+import { QuickNavMenu } from '../../components/ui/quick-nav-menu';
 import { CONFESSIONS } from '../../constants/confessions';
 import { HYMNS } from '../../constants/hymns';
 import { PRAYERS } from '../../constants/prayers';
@@ -25,62 +29,94 @@ function DividerMark({ color, accent }: { color: string; accent: string }) {
   );
 }
 
-type FavoriteFilter = 'all' | 'hymns' | 'confessions' | 'prayers';
+type FavoriteFilter = 'all' | FavoriteKind;
+
+type FavoriteListItem = {
+  key: string;
+  id: string;
+  kind: FavoriteKind;
+  badge: string;
+  title: string;
+  subtitle: string;
+  route: string;
+};
 
 const FILTERS: Array<{ key: FavoriteFilter; label: string }> = [
   { key: 'all', label: 'ሁሉም' },
-  { key: 'hymns', label: 'መዝሙሮች' },
-  { key: 'confessions', label: 'መግለጫዎች' },
-  { key: 'prayers', label: 'ጸሎቶች' },
+  { key: 'hymn', label: 'መዝሙሮች' },
+  { key: 'confession', label: 'ኑዛዜዎች' },
+  { key: 'prayer', label: 'ጸሎቶች' },
 ];
 
 export default function FavoritesScreen() {
   const [filter, setFilter] = useState<FavoriteFilter>('all');
-  const { darkMode, fontScale } = useAppPreferences();
+  const { darkMode, fontScale, favoriteItems, toggleFavorite } = useAppPreferences();
   const theme = getAppTheme(darkMode);
 
   const items = useMemo(() => {
-    const merged = [
-      ...HYMNS.slice(0, 4).map(item => ({
-        key: item.id,
-        number: item.number,
-        title: item.title,
-        subtitle: 'መዝሙር',
-        type: 'hymns' as const,
-        route: `/hymn-book/${item.id}` as const,
-      })),
-      ...CONFESSIONS.slice(0, 3).map((item, index) => ({
-        key: item.id,
-        number: String(index + 1).padStart(2, '0'),
-        title: item.title,
-        subtitle: 'መግለጫ',
-        type: 'confessions' as const,
-        route: `/declaration-of-faith/${item.id}` as const,
-      })),
-      ...PRAYERS.slice(0, 3).map((item, index) => ({
-        key: item.id,
-        number: String(index + 1).padStart(2, '0'),
-        title: item.title,
-        subtitle: 'ጸሎት',
-        type: 'prayers' as const,
-        route: `/other-prayers/${item.id}` as const,
-      })),
-    ];
+    const orderedFavorites = [...favoriteItems].reverse();
+
+    const resolved = orderedFavorites
+      .map<FavoriteListItem | null>(favorite => {
+        if (favorite.kind === 'hymn') {
+          const hymn = HYMNS.find(item => item.id === favorite.id);
+          return hymn
+            ? {
+                key: `hymn:${hymn.id}`,
+                id: hymn.id,
+                kind: 'hymn',
+                badge: hymn.number,
+                title: hymn.title,
+                subtitle: 'መዝሙር',
+                route: `/hymn-book/${hymn.id}`,
+              }
+            : null;
+        }
+
+        if (favorite.kind === 'confession') {
+          const confession = CONFESSIONS.find(item => item.id === favorite.id);
+          return confession
+            ? {
+                key: `confession:${confession.id}`,
+                id: confession.id,
+                kind: 'confession',
+                badge: 'መግ',
+                title: confession.title,
+                subtitle: 'የእምነት ኑዛዜ',
+                route: `/declaration-of-faith/${confession.id}`,
+              }
+            : null;
+        }
+
+        const prayer = PRAYERS.find(item => item.id === favorite.id);
+        return prayer
+          ? {
+              key: `prayer:${prayer.id}`,
+              id: prayer.id,
+              kind: 'prayer',
+              badge: 'ጸ',
+              title: prayer.title,
+              subtitle: 'ጸሎት',
+              route: `/other-prayers/${prayer.id}`,
+            }
+          : null;
+      })
+      .filter((item): item is FavoriteListItem => item !== null);
 
     if (filter === 'all') {
-      return merged;
+      return resolved;
     }
 
-    return merged.filter(item => item.type === filter);
-  }, [filter]);
+    return resolved.filter(item => item.kind === filter);
+  }, [favoriteItems, filter]);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
-          <View style={styles.headerButton} />
+          <QuickNavMenu />
           <Text style={[styles.headerTitle, { color: theme.text, fontSize: 22 * fontScale }]}>ተወዳጆች</Text>
-          <View style={styles.headerButton} />
+          <View style={styles.headerSpacer} />
         </View>
 
         <DividerMark color={theme.divider} accent={theme.accent} />
@@ -111,26 +147,42 @@ export default function FavoritesScreen() {
 
         <View style={styles.listWrap}>
           {items.map(item => (
-            <Pressable
+            <View
               key={item.key}
-              onPress={() => router.push(item.route)}
               style={[styles.row, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}
             >
-              <Text style={[styles.rowNumber, { color: theme.accent, fontSize: 22 * fontScale }]}>{item.number}</Text>
-              <View style={styles.rowBody}>
-                <Text style={[styles.rowTitle, { color: theme.text, fontSize: 18 * fontScale }]}>{item.title}</Text>
-                <Text style={[styles.rowSubtitle, { color: theme.textMuted, fontSize: 12 * fontScale }]}>{item.subtitle}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={theme.text} />
-            </Pressable>
+              <Pressable onPress={() => router.push(item.route as never)} style={styles.rowMain}>
+                <View style={[styles.rowBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.rowBadgeText, { color: theme.accent, fontSize: item.kind === 'hymn' ? 18 * fontScale : 12 * fontScale }]}>
+                    {item.badge}
+                  </Text>
+                </View>
+                <View style={styles.rowBody}>
+                  <Text style={[styles.rowTitle, { color: theme.text, fontSize: 17 * fontScale }]} numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                  <Text style={[styles.rowSubtitle, { color: theme.textMuted, fontSize: 12 * fontScale }]}>
+                    {item.subtitle}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={theme.text} />
+              </Pressable>
+
+              <Pressable
+                onPress={() => toggleFavorite(item.kind, item.id)}
+                style={[styles.removeButton, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              >
+                <Feather name="heart" size={16} color={theme.accent} />
+              </Pressable>
+            </View>
           ))}
 
           {items.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
               <Feather name="heart" size={22} color={theme.accent} />
-              <Text style={[styles.emptyTitle, { color: theme.text }]}>ባዶ ዝርዝር</Text>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>ተወዳጅ ዝርዝር ባዶ ነው</Text>
               <Text style={[styles.emptyText, { color: theme.textMuted }]}>
-                በዚህ ምድብ ላይ የተወዳጁ ንጥሎች አልተገኙም።
+                በመዝሙር፣ በመግለጫ ወይም በጸሎት ገጾች ላይ ያለውን የልብ ምልክት በመጫን እዚህ ያከማቹ።
               </Text>
             </View>
           ) : null}
@@ -144,7 +196,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   contentContainer: { paddingHorizontal: 18, paddingTop: 16, paddingBottom: 96 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerButton: { width: 34, height: 34 },
+  headerSpacer: { width: 46, height: 46 },
   headerTitle: { fontWeight: '800' },
   dividerWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 14, marginBottom: 22 },
   dividerLine: { flex: 1, height: 1 },
@@ -163,16 +215,38 @@ const styles = StyleSheet.create({
   listWrap: { gap: 10 },
   row: {
     borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 16,
+    borderWidth: 1,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    gap: 10,
   },
-  rowNumber: { width: 38, fontWeight: '800' },
+  rowMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowBadge: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  rowBadgeText: { fontWeight: '800' },
   rowBody: { flex: 1, paddingRight: 10 },
   rowTitle: { fontWeight: '700', marginBottom: 4 },
   rowSubtitle: { fontWeight: '600' },
+  removeButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   emptyState: {
     borderRadius: 16,
     paddingHorizontal: 18,

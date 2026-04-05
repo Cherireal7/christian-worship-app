@@ -18,11 +18,18 @@ import {
 import { appStorage } from '../../services/app-storage';
 
 type FontSize = 'small' | 'medium' | 'large';
+export type FavoriteKind = 'hymn' | 'confession' | 'prayer';
+
+export type FavoriteItem = {
+  kind: FavoriteKind;
+  id: string;
+};
 
 type StoredPreferences = {
   darkMode: boolean;
   fontSize: FontSize;
   notificationsEnabled: boolean;
+  favorites: FavoriteItem[];
 };
 
 type AppPreferencesContextValue = {
@@ -33,6 +40,9 @@ type AppPreferencesContextValue = {
   setFontSize: (value: FontSize) => void;
   notificationsEnabled: boolean;
   setNotificationsEnabled: (value: boolean) => void;
+  favoriteItems: FavoriteItem[];
+  isFavorite: (kind: FavoriteKind, id: string) => boolean;
+  toggleFavorite: (kind: FavoriteKind, id: string) => void;
   hasHydrated: boolean;
 };
 
@@ -48,6 +58,7 @@ const DEFAULT_PREFERENCES: StoredPreferences = {
   darkMode: true,
   fontSize: 'medium',
   notificationsEnabled: true,
+  favorites: [],
 };
 
 const AppPreferencesContext = createContext<AppPreferencesContextValue | null>(null);
@@ -58,6 +69,7 @@ export function AppPreferencesProvider({ children }: PropsWithChildren) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     DEFAULT_PREFERENCES.notificationsEnabled,
   );
+  const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>(DEFAULT_PREFERENCES.favorites);
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
@@ -91,6 +103,24 @@ export function AppPreferencesProvider({ children }: PropsWithChildren) {
         if (typeof parsed.notificationsEnabled === 'boolean') {
           setNotificationsEnabled(parsed.notificationsEnabled);
         }
+
+        if (Array.isArray(parsed.favorites)) {
+          const favorites = parsed.favorites.filter((item): item is FavoriteItem => {
+            if (!item || typeof item !== 'object') {
+              return false;
+            }
+
+            const candidate = item as Partial<FavoriteItem>;
+            return (
+              (candidate.kind === 'hymn' ||
+                candidate.kind === 'confession' ||
+                candidate.kind === 'prayer') &&
+              typeof candidate.id === 'string'
+            );
+          });
+
+          setFavoriteItems(favorites);
+        }
       } catch (error) {
         console.error('[preferences] Failed to load preferences:', error);
       } finally {
@@ -116,10 +146,11 @@ export function AppPreferencesProvider({ children }: PropsWithChildren) {
       darkMode,
       fontSize,
       notificationsEnabled,
+      favorites: favoriteItems,
     };
 
     void appStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [darkMode, fontSize, hasHydrated, notificationsEnabled]);
+  }, [darkMode, favoriteItems, fontSize, hasHydrated, notificationsEnabled]);
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -173,9 +204,23 @@ export function AppPreferencesProvider({ children }: PropsWithChildren) {
       setFontSize,
       notificationsEnabled,
       setNotificationsEnabled,
+      favoriteItems,
+      isFavorite: (kind, id) =>
+        favoriteItems.some(item => item.kind === kind && item.id === id),
+      toggleFavorite: (kind, id) => {
+        setFavoriteItems(current => {
+          const exists = current.some(item => item.kind === kind && item.id === id);
+
+          if (exists) {
+            return current.filter(item => !(item.kind === kind && item.id === id));
+          }
+
+          return [...current, { kind, id }];
+        });
+      },
       hasHydrated,
     }),
-    [darkMode, fontSize, hasHydrated, notificationsEnabled],
+    [darkMode, favoriteItems, fontSize, hasHydrated, notificationsEnabled],
   );
 
   return <AppPreferencesContext.Provider value={value}>{children}</AppPreferencesContext.Provider>;

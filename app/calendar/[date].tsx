@@ -1,7 +1,7 @@
 import Feather from '@expo/vector-icons/Feather';
 import dayjs from 'dayjs';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Pressable, ScrollView, Share, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppPreferences } from '../../components/providers/app-preferences';
@@ -16,6 +16,41 @@ function cleanLiturgicalText(text: string | null) {
   }
 
   return text.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+}
+
+function buildShareText(day: LiturgicalDay) {
+  const primaryTitle =
+    day.festivalTitle ||
+    day.moveableFeast ||
+    day.saintsDay ||
+    day.weekName ||
+    `${day.season}`;
+
+  const dailyReadings = [
+    day.dailyReadings.firstReading,
+    day.dailyReadings.secondReading,
+  ].filter((reading): reading is string => Boolean(reading));
+
+  const sundayReadings = [
+    day.propers.oldTestament,
+    day.propers.epistle,
+    day.propers.gospel,
+  ].filter((reading): reading is string => Boolean(reading));
+
+  const lines = [
+    `${dayjs(day.date).format('MMMM D, YYYY')} • ${primaryTitle}`,
+    `${day.season} • ${day.color}`,
+  ];
+
+  if (dailyReadings.length > 0) {
+    lines.push(`የዕለቱ ንባቦች: ${dailyReadings.join(' • ')}`);
+  }
+
+  if ((day.isSunday || day.isFestival) && sundayReadings.length > 0) {
+    lines.push(`Sunday Propers: ${sundayReadings.join(' • ')}`);
+  }
+
+  return lines.join('\n');
 }
 
 function Section({
@@ -99,124 +134,180 @@ export default function CalendarDayDetailScreen() {
   const sectionBackground = isDark ? theme.surface : '#FFFFFF';
   const cleanedCollect = cleanLiturgicalText(day.propers.collect);
   const cleanedIntroit = cleanLiturgicalText(day.propers.introit);
+  const previousDate = dayjs(day.date).subtract(1, 'day').format('YYYY-MM-DD');
+  const nextDate = dayjs(day.date).add(1, 'day').format('YYYY-MM-DD');
 
   return (
     <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ScrollView
-        contentContainerStyle={[styles.contentContainer, { paddingBottom: Math.max(insets.bottom, 18) + 24 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerRow}>
-          <View style={styles.headerLeft}>
-            <QuickNavMenu />
+      <View style={styles.screen}>
+        <ScrollView
+          contentContainerStyle={[styles.contentContainer, { paddingBottom: Math.max(insets.bottom, 18) + 96 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerRow}>
+            <View style={styles.headerLeft}>
+              <QuickNavMenu />
+              <Pressable
+                onPress={() => router.back()}
+                style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
+              >
+                <Feather name="arrow-left" size={20} color={theme.text} />
+              </Pressable>
+            </View>
+            <Text style={[styles.headerTitle, { color: theme.text, fontSize: 22 * fontScale }]}>
+              የቀን ዝርዝር
+            </Text>
+            <View style={styles.headerButtonSpacer} />
+          </View>
+
+          <View
+            style={[
+              styles.heroCard,
+              {
+                backgroundColor: liturgicalColors.background,
+                borderColor: `${liturgicalColors.accent}55`,
+              },
+            ]}
+          >
+            <View style={styles.heroTopRow}>
+              <View style={styles.heroMeta}>
+                <View style={[styles.heroDot, { backgroundColor: liturgicalColors.accent }]} />
+                <Text style={[styles.heroSeason, { color: liturgicalColors.accent, fontSize: 12 * fontScale }]}>
+                  {day.season}
+                </Text>
+                <Text
+                  style={[
+                    styles.heroColorChip,
+                    {
+                      color: liturgicalColors.accent,
+                      borderColor: `${liturgicalColors.accent}44`,
+                      fontSize: 11 * fontScale,
+                    },
+                  ]}
+                >
+                  {day.color}
+                </Text>
+              </View>
+              <Text style={[styles.heroDate, { color: liturgicalColors.text, fontSize: 13 * fontScale }]}>
+                {dayjs(day.date).format('MMMM D, YYYY')}
+              </Text>
+            </View>
+
+            {day.weekName ? (
+              <Text style={[styles.heroWeekName, { color: liturgicalColors.text, fontSize: 22 * fontScale }]}>
+                {day.weekName}
+              </Text>
+            ) : null}
+
+            {day.festivalTitle || day.moveableFeast ? (
+              <Text style={[styles.heroFestival, { color: liturgicalColors.accent, fontSize: 16 * fontScale }]}>
+                {day.festivalTitle || day.moveableFeast}
+              </Text>
+            ) : null}
+
+            {day.saintsDay ? (
+              <Text style={[styles.heroSaint, { color: liturgicalColors.text, fontSize: 14 * fontScale }]}>
+                {day.saintsDay}
+              </Text>
+            ) : null}
+          </View>
+
+          <View style={styles.navigationRow}>
             <Pressable
-              onPress={() => router.back()}
-              style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
+              onPress={() => router.replace(`/calendar/${previousDate}`)}
+              style={[styles.navigationButton, { backgroundColor: theme.control, borderColor: theme.border }]}
             >
-              <Feather name="arrow-left" size={20} color={theme.text} />
+              <Feather name="chevron-left" size={18} color={theme.text} />
+              <View style={styles.navigationCopy}>
+                <Text style={[styles.navigationLabel, { color: theme.textMuted, fontSize: 11 * fontScale }]}>
+                  ቀዳሚ ቀን
+                </Text>
+                <Text style={[styles.navigationDate, { color: theme.text, fontSize: 13 * fontScale }]}>
+                  {dayjs(previousDate).format('MMM D')}
+                </Text>
+              </View>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.replace(`/calendar/${nextDate}`)}
+              style={[styles.navigationButton, { backgroundColor: theme.control, borderColor: theme.border }]}
+            >
+              <View style={[styles.navigationCopy, styles.navigationCopyRight]}>
+                <Text style={[styles.navigationLabel, { color: theme.textMuted, fontSize: 11 * fontScale }]}>
+                  ቀጣይ ቀን
+                </Text>
+                <Text style={[styles.navigationDate, { color: theme.text, fontSize: 13 * fontScale }]}>
+                  {dayjs(nextDate).format('MMM D')}
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={18} color={theme.text} />
             </Pressable>
           </View>
-          <Text style={[styles.headerTitle, { color: theme.text, fontSize: 22 * fontScale }]}>
-            የቀን ዝርዝር
-          </Text>
-          <View style={styles.headerButton} />
-        </View>
 
-        <View
+          {(day.isSunday || day.isFestival) && (
+            <Section
+              title="Sunday Propers"
+              borderColor={theme.border}
+              backgroundColor={sectionBackground}
+              titleColor={theme.text}
+            >
+              <ProperRow label="Old Testament" value={day.propers.oldTestament} accent={liturgicalColors.accent} textColor={theme.text} />
+              <ProperRow label="Epistle" value={day.propers.epistle} accent={liturgicalColors.accent} textColor={theme.text} />
+              <ProperRow label="Gospel" value={day.propers.gospel} accent={liturgicalColors.accent} textColor={theme.text} />
+              <ProperRow label="Collect" value={cleanedCollect} accent={liturgicalColors.accent} textColor={theme.textMuted} />
+              <ProperRow label="Introit" value={cleanedIntroit} accent={liturgicalColors.accent} textColor={theme.textMuted} />
+            </Section>
+          )}
+
+          {(day.dailyReadings.firstReading || day.dailyReadings.secondReading) && (
+            <Section
+              title="Daily Readings"
+              borderColor={theme.border}
+              backgroundColor={sectionBackground}
+              titleColor={theme.text}
+            >
+              <ProperRow
+                label="First Reading"
+                value={day.dailyReadings.firstReading}
+                accent={liturgicalColors.accent}
+                textColor={theme.text}
+              />
+              <ProperRow
+                label="Second Reading"
+                value={day.dailyReadings.secondReading}
+                accent={liturgicalColors.accent}
+                textColor={theme.text}
+              />
+            </Section>
+          )}
+        </ScrollView>
+
+        <Pressable
+          onPress={() => {
+            void Share.share({
+              message: buildShareText(day),
+              title: 'የዕለቱ ንባቦች',
+            });
+          }}
           style={[
-            styles.heroCard,
+            styles.shareButton,
             {
-              backgroundColor: liturgicalColors.background,
-              borderColor: `${liturgicalColors.accent}55`,
+              bottom: Math.max(insets.bottom, 18) + 8,
+              backgroundColor: theme.control,
+              borderColor: theme.border,
             },
           ]}
         >
-          <View style={styles.heroTopRow}>
-            <View style={styles.heroMeta}>
-              <View style={[styles.heroDot, { backgroundColor: liturgicalColors.accent }]} />
-              <Text style={[styles.heroSeason, { color: liturgicalColors.accent, fontSize: 12 * fontScale }]}>
-                {day.season}
-              </Text>
-              <Text
-                style={[
-                  styles.heroColorChip,
-                  {
-                    color: liturgicalColors.accent,
-                    borderColor: `${liturgicalColors.accent}44`,
-                    fontSize: 11 * fontScale,
-                  },
-                ]}
-              >
-                {day.color}
-              </Text>
-            </View>
-            <Text style={[styles.heroDate, { color: liturgicalColors.text, fontSize: 13 * fontScale }]}>
-              {dayjs(day.date).format('MMMM D, YYYY')}
-            </Text>
-          </View>
-
-          {day.weekName ? (
-            <Text style={[styles.heroWeekName, { color: liturgicalColors.text, fontSize: 22 * fontScale }]}>
-              {day.weekName}
-            </Text>
-          ) : null}
-
-          {day.festivalTitle || day.moveableFeast ? (
-            <Text style={[styles.heroFestival, { color: liturgicalColors.accent, fontSize: 16 * fontScale }]}>
-              {day.festivalTitle || day.moveableFeast}
-            </Text>
-          ) : null}
-
-          {day.saintsDay ? (
-            <Text style={[styles.heroSaint, { color: liturgicalColors.text, fontSize: 14 * fontScale }]}>
-              {day.saintsDay}
-            </Text>
-          ) : null}
-        </View>
-
-        {(day.isSunday || day.isFestival) && (
-          <Section
-            title="Sunday Propers"
-            borderColor={theme.border}
-            backgroundColor={sectionBackground}
-            titleColor={theme.text}
-          >
-            <ProperRow label="Old Testament" value={day.propers.oldTestament} accent={liturgicalColors.accent} textColor={theme.text} />
-            <ProperRow label="Epistle" value={day.propers.epistle} accent={liturgicalColors.accent} textColor={theme.text} />
-            <ProperRow label="Gospel" value={day.propers.gospel} accent={liturgicalColors.accent} textColor={theme.text} />
-            <ProperRow label="Collect" value={cleanedCollect} accent={liturgicalColors.accent} textColor={theme.textMuted} />
-            <ProperRow label="Introit" value={cleanedIntroit} accent={liturgicalColors.accent} textColor={theme.textMuted} />
-          </Section>
-        )}
-
-        {(day.dailyReadings.firstReading || day.dailyReadings.secondReading) && (
-          <Section
-            title="Daily Readings"
-            borderColor={theme.border}
-            backgroundColor={sectionBackground}
-            titleColor={theme.text}
-          >
-            <ProperRow
-              label="First Reading"
-              value={day.dailyReadings.firstReading}
-              accent={liturgicalColors.accent}
-              textColor={theme.text}
-            />
-            <ProperRow
-              label="Second Reading"
-              value={day.dailyReadings.secondReading}
-              accent={liturgicalColors.accent}
-              textColor={theme.text}
-            />
-          </Section>
-        )}
-      </ScrollView>
+          <Feather name="share-2" size={20} color={theme.text} />
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  screen: { flex: 1 },
   contentContainer: {
     paddingHorizontal: 16,
     paddingTop: 16,
@@ -239,6 +330,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
+  },
+  headerButtonSpacer: {
+    width: 38,
+    height: 38,
   },
   headerTitle: {
     fontWeight: '800',
@@ -291,6 +386,53 @@ const styles = StyleSheet.create({
   heroSaint: {
     fontWeight: '600',
     lineHeight: 22,
+  },
+  navigationRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 14,
+  },
+  navigationButton: {
+    flex: 1,
+    minHeight: 58,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  navigationCopy: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  navigationCopyRight: {
+    alignItems: 'flex-end',
+    marginLeft: 0,
+    marginRight: 8,
+  },
+  navigationLabel: {
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  navigationDate: {
+    fontWeight: '800',
+  },
+  shareButton: {
+    position: 'absolute',
+    right: 18,
+    width: 54,
+    height: 54,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#020617',
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
   },
   sectionCard: {
     borderRadius: 20,

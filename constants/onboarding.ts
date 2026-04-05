@@ -13,7 +13,7 @@ export const ONBOARDING_SLIDES: OnboardingItem[] = [
     id: 'welcome',
     title: 'እንኳን በደህና መጡ',
     description:
-        'መዝሙሮችን፣ ጸሎቶችን እና የእምነት መግለጫዎችን በማንኛውም ጊዜ ያንብቡ። ለጸጥታ እና ለተኩረት አምልኮ ተዘጋጅቷል።',
+        'መዝሙሮችን፣ ጸሎቶችን እና የእምነት ኑዛዜዎችን በማንኛውም ጊዜ ያንብቡ። ለጸጥታ እና ለተኩረት አምልኮ ተዘጋጅቷል።',
     buttonText: 'ቀጣይ',
     icon: 'cross',
   },
@@ -21,7 +21,7 @@ export const ONBOARDING_SLIDES: OnboardingItem[] = [
     id: 'hymns',
     title: 'መዝሙሮች እና ቅዱስ ጽሑፎች',
     description:
-        'መዝሙሮችን፣ የእምነት መግለጫዎችን እና ጸሎቶችን በአንድ ቦታ ያግኙ። በአምልኮ ጊዜ ለማንበብ ቀላል እና ምቹ ነው።',
+        'መዝሙሮችን፣ የእምነት ኑዛዜዎችን እና ጸሎቶችን በአንድ ቦታ ያግኙ። በአምልኮ ጊዜ ለማንበብ ቀላል እና ምቹ ነው።',
     buttonText: 'ቀጣይ',
     icon: 'music',
   },

@@ -51,7 +51,7 @@ export default function SettingsScreen() {
               <Feather name="arrow-left" size={20} color={theme.text} />
             </Pressable>
           </View>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>ቅንብሮች</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
           <View style={styles.headerSpacer} />
         </View>
 
@@ -141,22 +141,22 @@ export default function SettingsScreen() {
         <View style={[styles.infoCard, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
           <Text style={[styles.infoTitle, { color: theme.text }]}>ስለ መተግበሪያው</Text>
           <Text style={[styles.infoBody, { color: theme.textMuted }]}>
-            ይህ መተግበሪያ መዝሙሮች፣ የእምነት መግለጫዎች፣ ጸሎቶች እና የቀን መቁጠሪያ
-            መረጃዎችን በአንድ ቦታ ለማቅረብ የተዘጋጀ ነው። የአሁኑ እትም 1.0.0 ሲሆን
-            ዳታው በTypeScript ፋይሎች ውስጥ በቀጥታ ሊተካ ይችላል።
+            ይህ መተግበሪያ መዝሙሮች፣ የእምነት ኑዛዜዎች፣ ጸሎቶች እና የቀን መቁጠሪያ
+            መረጃዎችን በአንድ ቦታ በቀላሉ ለማቅረብ የተዘጋጀ ነው። ዓላማው ተጠቃሚዎች
+            የዕለት ንባብ፣ መዝሙር እና ጸሎት ይዘቶችን በአንድ ቦታ እንዲያገኙ ማድረግ ነው።
+            የአሁኑ እትም 1.0.0 ነው።
           </Text>
         </View>
 
         <View style={[styles.infoCard, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
           <Text style={[styles.infoTitle, { color: theme.text }]}>እገዛ እና ድጋፍ</Text>
           <Text style={[styles.infoBody, { color: theme.textMuted }]}>
-            የጽሑፍ ስህተት፣ የመተግበሪያ ችግኝ ወይም የቀን መቁጠሪያ መረጃ ማሻሻያ
-            ካለ በዚህ ክፍል የድጋፍ መረጃ ይታያል። ለአሁኑ የስራ ሂደቱ ማጠቃለያ፦
+            የጽሑፍ ስህተት፣ የመተግበሪያ ችግኝ፣ የመዝሙር ርዕስ ማስተካከያ ወይም ሌላ ጥያቄ
+            ካለዎት በቀጥታ ያግኙኝ። ማስተካከያ እና ድጋፍ በግል እንዲከታተል ተዘጋጅቷል።
           </Text>
           <View style={styles.detailList}>
-            <Text style={[styles.detailItem, { color: theme.text }]}>የመረጃ ማስተካከያ: `support@christianworship.app`</Text>
-            <Text style={[styles.detailItem, { color: theme.text }]}>ቴክኒክ ድጋፍ: `Mon-Fri 9:00-17:00`</Text>
-            <Text style={[styles.detailItem, { color: theme.text }]}>የማህበረሰብ ጥያቄዎች: የመዝሙር እና ጸሎት ርዕሶችን በስም ይግለጹ</Text>
+            <Text style={[styles.detailItem, { color: theme.text }]}>ቴሌግራም: @cheri_figma</Text>
+            <Text style={[styles.detailItem, { color: theme.text }]}>የመተግበሪያ ድጋፍ: የጽሑፍ ስህተት፣ ችግኝ እና ማሻሻያ ጥያቄዎች</Text>
           </View>
         </View>
 
@@ -164,8 +164,10 @@ export default function SettingsScreen() {
           <Text style={[styles.infoTitle, { color: theme.text }]}>የግላዊነት ማስታወቂያ</Text>
           <Text style={[styles.infoBody, { color: theme.textMuted }]}>
             በአሁኑ ሁኔታ ይህ መተግበሪያ የተጠቃሚ መለያ ወይም የግል መረጃ አያከማችም።
-            ወደፊት የተወዳጅ ዝርዝሮች ወይም የውስጥ እቅዶች ቢጨመሩ ይህ ክፍል
+            ወደፊት የተወዳጅ ዝርዝሮች ወይም ሌሎች የውስጥ ባህሪያት ቢጨመሩ ይህ ክፍል
             በዚያ መሠረት ይዘምናል።
+
+            NB: This project is partially open-source.
           </Text>
         </View>
       </ScrollView>

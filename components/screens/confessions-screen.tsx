@@ -59,9 +59,11 @@ export function ConfessionsScreen() {
             <HomeCrossMark />
 
             <Text style={[styles.heroTitle, { color: theme.text, fontSize: 19 * fontScale, lineHeight: 31 * fontScale }]}>
-              የሉተር መሠረተ እምነት እና የሥርዓተ አምልኮ ጽሑፎች
+              የኤኩመኒካል የእምነት ኑዛዜዎች
             </Text>
-            <Text style={[styles.heroSubtitle, { color: theme.textMuted, fontSize: 13 * fontScale }]}>Creeds & Liturgical Texts</Text>
+            <Text style={[styles.heroSubtitle, { color: theme.textMuted, fontSize: 13 * fontScale }]}>
+              የሁሉም ክርስቲያናት የጋራ የእምነት ኑዛዜዎች
+            </Text>
 
             <DecorativeDivider />
           </View>
@@ -70,11 +72,7 @@ export function ConfessionsScreen() {
             {CONFESSIONS.map(confession => (
               <Pressable
                 key={confession.id}
-                onPress={() =>
-                  confession.id === 'other-prayers'
-                    ? router.push('/other-prayers')
-                    : router.push(`/declaration-of-faith/${confession.id}`)
-                }
+                onPress={() => router.push(`/declaration-of-faith/${confession.id}`)}
                 style={[styles.actionCard, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}
               >
                 <View style={styles.actionCopy}>

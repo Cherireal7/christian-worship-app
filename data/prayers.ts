@@ -61,13 +61,5 @@ export const PRAYER_RECORDS: PrayerRecord[] = [
 በየቀኑ ስለ ምሕረትህ እና ስለ ጥበቃህ ክብር እንሰጥሃለን።
 እኛን በፍቅርህ ውስጥ አኑረን።`,
   },
-  {
-    id: 'to-virgin-mary',
-    title: 'የእመቤታችን ጸሎት',
-    subtitle: 'Prayer to the Virgin Mary',
-    body: `እመቤታችን ሆይ በጸጋህ ተሸፍነናል።
-ለልጅሽ በፍቅር ምልጃ አቅርቢልን።
-በእምነት አጽናን
-በሰላምም አስመራን።`,
-  },
+
 ];
