@@ -37,7 +37,16 @@
           "color": "#D8A24F"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInRelease": true,
+            "enableShrinkResourcesInRelease": true
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {},
