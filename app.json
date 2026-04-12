@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "mobileapptest",
+    "name": "Christian Worship",
     "slug": "mobileapptest",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/favicon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/favicon.png",
       "resizeMode": "contain",
       "backgroundColor": "#020617"
     },
@@ -18,9 +18,9 @@
       "package": "com.cherireal7.mobileapptest",
       "adaptiveIcon": {
         "backgroundColor": "#020617",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "foregroundImage": "./assets/favicon.png",
         "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/favicon.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -33,7 +33,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/android-icon-monochrome.png",
+          "icon": "./assets/favicon.png",
           "color": "#D8A24F"
         }
       ],
