@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 import {
   Image,
   ImageBackground,
@@ -6,26 +7,64 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const ONBOARDING_DONE_KEY = 'hasCompletedOnboarding';
 
 export default function IndexScreen() {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace("/onboarding");
-    }, 2500);
+  const [checking, setChecking] = useState(true);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkOnboarding() {
+      try {
+        const value = await AsyncStorage.getItem(ONBOARDING_DONE_KEY);
+        if (cancelled) return;
+
+        if (value === 'true') {
+          // Already onboarded — skip splash & go straight to the app
+          router.replace('/(tabs)');
+        } else {
+          // First time — show splash for 2.5s then go to onboarding
+          setChecking(false);
+          const timer = setTimeout(() => {
+            router.replace('/onboarding');
+          }, 2500);
+          return () => clearTimeout(timer);
+        }
+      } catch {
+        // On any storage error, fall back to showing onboarding
+        if (!cancelled) {
+          setChecking(false);
+          const timer = setTimeout(() => {
+            router.replace('/onboarding');
+          }, 2500);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+
+    void checkOnboarding();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  // While checking storage, render nothing (avoids flash)
+  if (checking) {
+    return <View style={styles.container} />;
+  }
 
   return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
         <ImageBackground
-            source={require("../assets/images/cover.png")}
+            source={require('../assets/images/cover.png')}
             style={styles.background}
             resizeMode="cover"
         >
@@ -34,7 +73,7 @@ export default function IndexScreen() {
 
             <View style={styles.content}>
               <Image
-                  source={require("../assets/images/luthericon.png")}
+                  source={require('../assets/images/luthericon.png')}
                   style={styles.logo}
                   resizeMode="contain"
               />
@@ -53,26 +92,26 @@ export default function IndexScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#061D63",
+    backgroundColor: '#061D63',
   },
   background: {
     flex: 1,
   },
   safeArea: {
     flex: 1,
-    position: "relative",
-    justifyContent: "center",
-    alignItems: "center",
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(7, 20, 77, 0.68)",
+    backgroundColor: 'rgba(7, 20, 77, 0.68)',
   },
   content: {
     flex: 1,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 28,
     zIndex: 2,
   },
@@ -84,28 +123,28 @@ const styles = StyleSheet.create({
   amharicTitle: {
     fontSize: 30,
     lineHeight: 40,
-    color: "#F3F0E8",
-    textAlign: "center",
+    color: '#F3F0E8',
+    textAlign: 'center',
     marginBottom: 14,
     letterSpacing: 0.4,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   subtitle: {
     fontSize: 17,
     lineHeight: 24,
-    color: "#F5F5F5",
-    textAlign: "center",
-    fontWeight: "500",
+    color: '#F5F5F5',
+    textAlign: 'center',
+    fontWeight: '500',
     opacity: 0.95,
   },
   bottomGlow: {
-    position: "absolute",
+    position: 'absolute',
     bottom: -40,
-    width: "130%",
+    width: '130%',
     height: 220,
     borderTopLeftRadius: 220,
     borderTopRightRadius: 220,
-    backgroundColor: "rgba(219, 242, 255, 0.42)",
+    backgroundColor: 'rgba(219, 242, 255, 0.42)',
     opacity: 0.9,
     zIndex: 1,
   },

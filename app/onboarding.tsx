@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
@@ -11,6 +12,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const ONBOARDING_DONE_KEY = 'hasCompletedOnboarding';
 
 import { OnboardingSlide } from '../components/ui/onboarding-slide';
 import { ONBOARDING_SLIDES } from '../constants/onboarding';
@@ -33,9 +36,14 @@ export default function OnboardingScreen() {
     setActiveIndex(nextIndex);
   }
 
+  async function markDoneAndNavigate() {
+    await AsyncStorage.setItem(ONBOARDING_DONE_KEY, 'true');
+    router.replace('/(tabs)');
+  }
+
   function handleNext() {
     if (isLast) {
-      router.replace('/(tabs)');
+      void markDoneAndNavigate();
       return;
     }
 
@@ -77,7 +85,7 @@ export default function OnboardingScreen() {
               accessibilityRole="button"
               accessibilityLabel="Skip onboarding"
               hitSlop={12}
-              onPress={() => router.replace('/(tabs)')}
+              onPress={() => void markDoneAndNavigate()}
             >
               <Text style={styles.skipText}>Skip</Text>
             </Pressable>

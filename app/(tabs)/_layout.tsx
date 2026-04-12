@@ -1,14 +1,31 @@
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Tabs } from 'expo-router';
+import {
+  createMaterialTopTabNavigator,
+  type MaterialTopTabNavigationEventMap,
+  type MaterialTopTabNavigationOptions,
+} from '@react-navigation/material-top-tabs';
+import type { ParamListBase, TabNavigationState } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { withLayoutContext } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppPreferences } from '../../components/providers/app-preferences';
 import { getAppTheme } from '../../constants/theme';
 
+// ─── Swipeable Top Tab Navigator wrapped for expo-router ─────────────────────
+const { Navigator } = createMaterialTopTabNavigator();
+
+const SwipeableTabs = withLayoutContext<
+  MaterialTopTabNavigationOptions,
+  typeof Navigator,
+  TabNavigationState<ParamListBase>,
+  MaterialTopTabNavigationEventMap
+>(Navigator);
+
+// ─── Tab config (same as before) ─────────────────────────────────────────────
 const TAB_CONFIG = {
   index: {
     label: 'መነሻ',
@@ -30,6 +47,7 @@ const TAB_CONFIG = {
   },
 } as const;
 
+// ─── Custom Tab Bar (exactly the same design as before) ───────────────────────
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { darkMode, fontScale } = useAppPreferences();
@@ -82,42 +100,37 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
+// ─── Layout ───────────────────────────────────────────────────────────────────
 export default function TabsLayout() {
+  const { darkMode } = useAppPreferences();
+  const theme = getAppTheme(darkMode);
+  const insets = useSafeAreaInsets();
+
   return (
-    <Tabs
-      tabBar={props => <CustomTabBar {...props} />}
+    <SwipeableTabs
+      tabBar={props => <CustomTabBar {...(props as unknown as BottomTabBarProps)} />}
       screenOptions={{
-        headerShown: false,
+        // Hide the built-in top indicator bar — we use our custom bottom bar
+        tabBarStyle: { display: 'none' },
+        swipeEnabled: true,
+        animationEnabled: true,
+        lazy: true,
+        // Give room at the bottom for our floating custom tab bar
+        sceneStyle: {
+          backgroundColor: theme.background,
+          paddingBottom: Math.max(insets.bottom, 6) + 76,
+        },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'መነሻ',
-        }}
-      />
-      <Tabs.Screen
-        name="hymn-book"
-        options={{
-          title: 'መዝሙር',
-        }}
-      />
-      <Tabs.Screen
-        name="calendar"
-        options={{
-          title: 'ቀን መቁጠሪያ',
-        }}
-      />
-      <Tabs.Screen
-        name="favorites"
-        options={{
-          title: 'ተወዳጆች',
-        }}
-      />
-    </Tabs>
+      <SwipeableTabs.Screen name="index" options={{ title: 'መነሻ' }} />
+      <SwipeableTabs.Screen name="hymn-book" options={{ title: 'መዝሙር' }} />
+      <SwipeableTabs.Screen name="calendar" options={{ title: 'ቀን መቁጠሪያ' }} />
+      <SwipeableTabs.Screen name="favorites" options={{ title: 'ተወዳጆች' }} />
+    </SwipeableTabs>
   );
 }
 
+// ─── Styles (identical to before) ────────────────────────────────────────────
 const styles = StyleSheet.create({
   tabBarOuter: {
     position: 'absolute',

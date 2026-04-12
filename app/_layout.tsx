@@ -68,7 +68,9 @@ function RootNavigator() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: darkMode ? '#020617' : '#E7EEF9' },
-          animation: 'fade',
+          animation: 'slide_from_right',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
         }}
       />
     </>

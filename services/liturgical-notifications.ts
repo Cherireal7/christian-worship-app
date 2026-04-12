@@ -12,10 +12,17 @@ import { getDay, type LiturgicalDay } from '../data/LiturgicalService';
 
 const NOTIFICATION_IDS_KEY = 'liturgical_notification_ids_v1';
 const NOTIFICATION_CHANNEL_ID = 'liturgical-morning-reminders';
-const MORNING_HOUR = 7;
+
+// Notification times
+const MORNING_PRAYER_HOUR = 6;
+const MORNING_PRAYER_MINUTE = 30;
+
+const DAILY_READING_HOUR = 7;
 const DAILY_READING_MINUTE = 0;
-const SPECIAL_DAY_MINUTE = 5;
-const SUNDAY_READING_MINUTE = 10;
+
+const NIGHT_PRAYER_HOUR = 21; // 9:00 PM
+const NIGHT_PRAYER_MINUTE = 0;
+
 const DAYS_TO_SCHEDULE = 21;
 
 function buildTriggerDate(dateString: string, hour: number, minute: number) {
@@ -36,56 +43,75 @@ function joinParts(parts: Array<string | null | undefined>) {
   return parts.filter((value): value is string => Boolean(value && value.trim())).join(' • ');
 }
 
-function buildDailyReadingNotification(day: LiturgicalDay) {
-  const body = joinParts([
+/**
+ * Builds a single consolidated daily notification that merges:
+ * - Daily readings (first & second)
+ * - Saints / festival day
+ * - Sunday propers (if applicable)
+ * All combined into one 7:00 AM notification.
+ */
+function buildConsolidatedDailyNotification(day: LiturgicalDay) {
+  const parts: string[] = [];
+
+  // Daily readings
+  const readingBody = joinParts([
     day.dailyReadings.firstReading,
     day.dailyReadings.secondReading,
   ]);
-
-  if (!body) {
-    return null;
+  if (readingBody) {
+    parts.push(readingBody);
   }
 
-  return {
-    title: 'የዕለቱ ንባቦች',
-    body,
-  };
-}
-
-function buildSpecialDayNotification(day: LiturgicalDay) {
-  const title = day.festivalTitle || day.moveableFeast || day.saintsDay;
-
-  if (!title) {
-    return null;
-  }
-
-  return {
-    title: 'የቅዱሳን እና በዓላት ማስታወሻ',
-    body: joinParts([
-      day.festivalTitle || day.moveableFeast,
-      day.saintsDay,
-    ]) || title,
-  };
-}
-
-function buildSundayReadingNotification(day: LiturgicalDay) {
-  if (!day.isSunday) {
-    return null;
-  }
-
-  const body = joinParts([
-    day.propers.oldTestament,
-    day.propers.epistle,
-    day.propers.gospel,
+  // Saints / festivals
+  const specialBody = joinParts([
+    day.festivalTitle || day.moveableFeast,
+    day.saintsDay,
   ]);
+  if (specialBody) {
+    parts.push(specialBody);
+  }
 
-  if (!body) {
+  // Sunday propers
+  if (day.isSunday) {
+    const sundayBody = joinParts([
+      day.propers.oldTestament,
+      day.propers.epistle,
+      day.propers.gospel,
+    ]);
+    if (sundayBody) {
+      parts.push(sundayBody);
+    }
+  }
+
+  if (parts.length === 0) {
     return null;
   }
 
+  // Build a descriptive title
+  let title = 'የዕለቱ ንባቦች';
+  if (day.isSunday && day.weekName) {
+    title = `የእሁድ ንባቦች · ${day.weekName}`;
+  } else if (day.festivalTitle || day.moveableFeast) {
+    title = day.festivalTitle || day.moveableFeast || title;
+  }
+
   return {
-    title: `የእሁድ ንባቦች${day.weekName ? ` · ${day.weekName}` : ''}`,
-    body,
+    title,
+    body: parts.join('\n'),
+  };
+}
+
+function buildMorningPrayerNotification() {
+  return {
+    title: 'የጠዋት ጸሎት',
+    body: 'የጠዋት ጸሎትዎን ጀምሩ።',
+  };
+}
+
+function buildNightPrayerNotification() {
+  return {
+    title: 'የማታ ጸሎት',
+    body: 'የምሽት ጸሎትዎን ጀምሩ።',
   };
 }
 
@@ -144,13 +170,15 @@ async function ensureNotificationsReadyAsync() {
   return requestedPermissions.granted;
 }
 
-async function scheduleNotificationAsync(
-  day: LiturgicalDay,
+async function scheduleAtAsync(
+  dateString: string,
+  hour: number,
   minute: number,
-  content: { title: string; body: string | null },
-  kind: 'daily' | 'special' | 'sunday',
+  content: { title: string; body: string },
+  kind: string,
+  deepLinkUrl?: string,
 ) {
-  const triggerDate = buildTriggerDate(day.date, MORNING_HOUR, minute);
+  const triggerDate = buildTriggerDate(dateString, hour, minute);
 
   if (!triggerDate) {
     return null;
@@ -159,11 +187,10 @@ async function scheduleNotificationAsync(
   return scheduleExpoNotificationAsync({
     content: {
       title: content.title,
-      body: content.body ?? 'የቀኑን ዝርዝር ለማየት ይክፈቱ።',
+      body: content.body,
       sound: true,
       data: {
-        url: `/calendar/${day.date}`,
-        date: day.date,
+        url: deepLinkUrl ?? '/(tabs)',
         kind,
       },
     },
@@ -191,28 +218,46 @@ export async function syncLiturgicalNotificationsAsync() {
     const dateString = dayjs().add(offset, 'day').format('YYYY-MM-DD');
     const day = getDay(dateString);
 
-    const dailyNotification = buildDailyReadingNotification(day);
+    // 1. Morning Prayer — 6:30 AM
+    const morningPrayer = buildMorningPrayerNotification();
+    const morningId = await scheduleAtAsync(
+      dateString,
+      MORNING_PRAYER_HOUR,
+      MORNING_PRAYER_MINUTE,
+      morningPrayer,
+      'morning-prayer',
+    );
+    if (morningId) {
+      notificationIds.push(morningId);
+    }
+
+    // 2. Consolidated Daily Reading — 7:00 AM (readings + saints + Sunday propers)
+    const dailyNotification = buildConsolidatedDailyNotification(day);
     if (dailyNotification) {
-      const id = await scheduleNotificationAsync(day, DAILY_READING_MINUTE, dailyNotification, 'daily');
-      if (id) {
-        notificationIds.push(id);
+      const dailyId = await scheduleAtAsync(
+        dateString,
+        DAILY_READING_HOUR,
+        DAILY_READING_MINUTE,
+        dailyNotification,
+        'daily-reading',
+        `/calendar/${day.date}`,
+      );
+      if (dailyId) {
+        notificationIds.push(dailyId);
       }
     }
 
-    const specialNotification = buildSpecialDayNotification(day);
-    if (specialNotification) {
-      const id = await scheduleNotificationAsync(day, SPECIAL_DAY_MINUTE, specialNotification, 'special');
-      if (id) {
-        notificationIds.push(id);
-      }
-    }
-
-    const sundayNotification = buildSundayReadingNotification(day);
-    if (sundayNotification) {
-      const id = await scheduleNotificationAsync(day, SUNDAY_READING_MINUTE, sundayNotification, 'sunday');
-      if (id) {
-        notificationIds.push(id);
-      }
+    // 3. Night Prayer — 9:00 PM
+    const nightPrayer = buildNightPrayerNotification();
+    const nightId = await scheduleAtAsync(
+      dateString,
+      NIGHT_PRAYER_HOUR,
+      NIGHT_PRAYER_MINUTE,
+      nightPrayer,
+      'night-prayer',
+    );
+    if (nightId) {
+      notificationIds.push(nightId);
     }
   }
 
