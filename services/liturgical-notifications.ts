@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import { Platform } from 'react-native';
 import { AndroidImportance } from 'expo-notifications/build/NotificationChannelManager.types';
-import { getPermissionsAsync, requestPermissionsAsync } from 'expo-notifications/build/NotificationPermissions';
+import { getPermissionsAsync, requestPermissionsAsync } from 'expo-notifications';
 import { SchedulableTriggerInputTypes } from 'expo-notifications/build/Notifications.types';
 import { cancelScheduledNotificationAsync } from 'expo-notifications/build/cancelScheduledNotificationAsync';
 import { scheduleNotificationAsync as scheduleExpoNotificationAsync } from 'expo-notifications/build/scheduleNotificationAsync';
@@ -150,6 +150,14 @@ export async function cancelLiturgicalNotificationsAsync() {
   await AsyncStorage.removeItem(NOTIFICATION_IDS_KEY);
 }
 
+/** 
+ * Type-safe check: reads `.granted` off any object at runtime.
+ * Avoids relying on the broken TS inheritance chain in NotificationPermissionsStatus.
+ */
+function permissionGranted(result: object): boolean {
+  return 'granted' in result && (result as { granted: boolean }).granted === true;
+}
+
 async function ensureNotificationsReadyAsync() {
   if (Platform.OS === 'android') {
     await setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
@@ -162,12 +170,12 @@ async function ensureNotificationsReadyAsync() {
 
   const existingPermissions = await getPermissionsAsync();
 
-  if (existingPermissions.granted) {
+  if (permissionGranted(existingPermissions)) {
     return true;
   }
 
   const requestedPermissions = await requestPermissionsAsync();
-  return requestedPermissions.granted;
+  return permissionGranted(requestedPermissions);
 }
 
 async function scheduleAtAsync(
