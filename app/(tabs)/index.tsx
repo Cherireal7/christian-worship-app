@@ -79,12 +79,12 @@ export default function LibraryHomeScreen() {
     'የዕለቱ ንባብ';
   const assignedReadings = today
     ? (today.isSunday || today.isFestival
-        ? [today.propers.oldTestament, today.propers.epistle, today.propers.gospel]
-        : [today.dailyReadings.firstReading, today.dailyReadings.secondReading]
-      ).filter((reading): reading is string => Boolean(reading))
+      ? [today.propers.oldTestament, today.propers.epistle, today.propers.gospel]
+      : [today.dailyReadings.firstReading, today.dailyReadings.secondReading]
+    ).filter((reading): reading is string => Boolean(reading))
     : [];
   const readingSummary =
-    assignedReadings.join(' • ') || 'የዕለቱ ንባቦች እዚህ ይታያሉ።';
+    assignedReadings.join(' • ') || 'የዕለቱ ንባቦች';
   const readingMeta = today
     ? `${today.season} • ${dayjs(today.date).format('MMMM D, YYYY')}`
     : 'ዛሬ';
@@ -106,7 +106,7 @@ export default function LibraryHomeScreen() {
           <HomeCrossMark />
 
           <Text style={[styles.heroTitle, { color: theme.text, fontSize: 19 * fontScale, lineHeight: 31 * fontScale }]}>
-            የሉተር መሠረተ እምነት እና የሥርዓተ አምልኮ ጽሑፎች
+            የሉተራን መሠረተ እምነት እና የሥርዓተ አምልኮ ጽሑፎች
           </Text>
           <Text style={[styles.heroSubtitle, { color: theme.textMuted, fontSize: 13 * fontScale }]}>Creeds & Liturgical Texts</Text>
 
@@ -114,13 +114,13 @@ export default function LibraryHomeScreen() {
 
           <View style={styles.actionsWrap}>
             <HomeActionCard
-              title="መዝሙር መጽሐፍ"
+              title="ስብሐት ለአምላክ"
               subtitle="Hymn book"
               href="/hymn-book"
               backgroundColor={actionCardColor}
             />
             <HomeActionCard
-              title="የእምነት ኑዛዜዎች"
+              title="የእምነት መግለጫዎች"
               subtitle="Confessions of Faith"
               href="/declaration-of-faith"
               backgroundColor={actionCardColor}
