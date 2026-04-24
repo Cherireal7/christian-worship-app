@@ -151,21 +151,21 @@ export default function SettingsScreen() {
         <View style={[styles.infoCard, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
           <Text style={[styles.infoTitle, { color: theme.text }]}>እገዛ እና ድጋፍ</Text>
           <Text style={[styles.infoBody, { color: theme.textMuted }]}>
-            የጽሑፍ ስህተት፣ የመተግበሪያ ችግኝ፣ የመዝሙር ርዕስ ማስተካከያ ወይም ሌላ ጥያቄ
+            የጽሑፍ ስህተት፣ የመተግበሪያ ችግር፣ የመዝሙር ርዕስ ማስተካከያ ወይም ሌላ ጥያቄ
             ካለዎት በቀጥታ ያግኙኝ። ማስተካከያ እና ድጋፍ በግል እንዲከታተል ተዘጋጅቷል።
           </Text>
           <View style={styles.detailList}>
             <Text style={[styles.detailItem, { color: theme.text }]}>ቴሌግራም: @cheri_figma</Text>
-            <Text style={[styles.detailItem, { color: theme.text }]}>የመተግበሪያ ድጋፍ: የጽሑፍ ስህተት፣ ችግኝ እና ማሻሻያ ጥያቄዎች</Text>
+            <Text style={[styles.detailItem, { color: theme.text }]}>የመተግበሪያ ድጋፍ: የጽሑፍ ስህተት፣ ችግር እና ማሻሻያ ጥያቄዎች</Text>
           </View>
         </View>
 
         <View style={[styles.infoCard, { backgroundColor: theme.surfaceStrong, borderColor: theme.border }]}>
-          <Text style={[styles.infoTitle, { color: theme.text }]}>የግላዊነት ማስታወቂያ</Text>
+          <Text style={[styles.infoTitle, { color: theme.text }]}>ማሳሰቢያ</Text>
           <Text style={[styles.infoBody, { color: theme.textMuted }]}>
             በአሁኑ ሁኔታ ይህ መተግበሪያ የተጠቃሚ መለያ ወይም የግል መረጃ አያከማችም።
             ወደፊት የተወዳጅ ዝርዝሮች ወይም ሌሎች የውስጥ ባህሪያት ቢጨመሩ ይህ ክፍል
-            በዚያ መሠረት ይዘምናል።
+            በዚያ መሠረት ይቀጥላል።
 
             NB: This project is partially open-source.
           </Text>
