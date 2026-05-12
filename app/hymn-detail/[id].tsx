@@ -34,7 +34,10 @@ export default function HymnDetailScreen() {
 
   if (!hymn) {
     return (
-      <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <SafeAreaView
+        edges={['top', 'left', 'right', 'bottom']}
+        style={[styles.safeArea, { backgroundColor: theme.background }]}
+      >
         <View style={styles.missingWrap}>
           <Text style={[styles.missingTitle, { color: theme.text }]}>መዝሙሩ አልተገኘም</Text>
           <Pressable onPress={() => router.replace('/hymn-book')} style={styles.backHomeButton}>
@@ -58,12 +61,12 @@ export default function HymnDetailScreen() {
   const favorite = isFavorite('hymn', hymn.id);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      edges={['top', 'left', 'right', 'bottom']}
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+    >
       <View style={[styles.screen, { backgroundColor: theme.background }]}>
-        <ScrollView
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               <QuickNavMenu />
@@ -83,11 +86,7 @@ export default function HymnDetailScreen() {
               onPress={() => toggleFavorite('hymn', hymn.id)}
               style={[styles.headerButton, { backgroundColor: theme.control, borderColor: theme.border }]}
             >
-              <Feather
-                name="heart"
-                size={22}
-                color={favorite ? theme.accent : theme.text}
-              />
+              <Feather name="heart" size={22} color={favorite ? theme.accent : theme.text} />
             </Pressable>
           </View>
 

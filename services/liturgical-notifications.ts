@@ -198,7 +198,7 @@ async function scheduleAtAsync(
       body: content.body,
       sound: true,
       data: {
-        url: deepLinkUrl ?? '/(tabs)',
+        url: deepLinkUrl ?? '/home',
         kind,
       },
     },
@@ -248,7 +248,7 @@ export async function syncLiturgicalNotificationsAsync() {
         DAILY_READING_MINUTE,
         dailyNotification,
         'daily-reading',
-        `/calendar/${day.date}`,
+        `/calendar-detail/${day.date}`,
       );
       if (dailyId) {
         notificationIds.push(dailyId);

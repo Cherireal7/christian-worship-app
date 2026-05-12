@@ -32,22 +32,22 @@ type NavSection = {
 
 const NAV_SECTIONS: NavSection[] = [
   {
-    title: 'ዋና መንገዶች',
+    title: 'Main',
     items: [
       {
-        label: 'መነሻ',
-        route: '/(tabs)',
-        matches: ['/'],
+        label: 'Home',
+        route: '/home',
+        matches: ['/', '/home'],
         icon: color => <Feather name="home" size={18} color={color} />,
       },
       {
-        label: 'ተወዳጆች',
+        label: 'Favorites',
         route: '/(tabs)/favorites',
         matches: ['/favorites'],
         icon: color => <Feather name="heart" size={18} color={color} />,
       },
       {
-        label: 'ማስተካከያ',
+        label: 'Settings',
         route: '/settings',
         matches: ['/settings'],
         icon: color => <Feather name="settings" size={18} color={color} />,
@@ -55,24 +55,30 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'የአምልኮ ይዘት',
+    title: 'Worship Library',
     items: [
       {
-        label: 'መዝሙር',
+        label: 'Hymn Book',
         route: '/hymn-book',
-        matches: ['/hymn-book'],
+        matches: ['/hymn-book', '/hymn-detail'],
         icon: color => (
           <MaterialCommunityIcons name="book-open-variant-outline" size={19} color={color} />
         ),
       },
       {
-        label: 'ኑዛዜዎች',
+        label: 'Declaration of Faith',
         route: '/declaration-of-faith',
         matches: ['/declaration-of-faith'],
         icon: color => <Ionicons name="document-text-outline" size={18} color={color} />,
       },
       {
-        label: 'ሌሎች ጸሎቶች',
+        label: 'Small Catechism',
+        route: '/small-catechism',
+        matches: ['/small-catechism'],
+        icon: color => <Ionicons name="book-outline" size={18} color={color} />,
+      },
+      {
+        label: 'Other Prayers',
         route: '/other-prayers',
         matches: ['/other-prayers'],
         icon: color => <Feather name="book-open" size={18} color={color} />,
@@ -80,12 +86,12 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: 'መሳሪያዎች',
+    title: 'Tools',
     items: [
       {
-        label: 'የዕለቱ ንባቦች',
+        label: 'Daily Readings',
         route: '/calendar',
-        matches: ['/calendar'],
+        matches: ['/calendar', '/calendar-detail'],
         icon: color => <Ionicons name="calendar-outline" size={18} color={color} />,
       },
     ],
@@ -186,9 +192,9 @@ export function QuickNavMenu() {
                   <View style={[styles.heroBadge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                     <Ionicons name="library-outline" size={18} color={theme.accent} />
                   </View>
-                  <Text style={[styles.heroTitle, { color: theme.text }]}>የክርስቲያን አምልኮ</Text>
+                  <Text style={[styles.heroTitle, { color: theme.text }]}>Christian Worship</Text>
                   <Text style={[styles.heroSubtitle, { color: theme.textMuted }]}>
-                    መጽሐፍት፣ ጸሎቶች እና የቀን መረጃዎች
+                    Hymns, liturgy, catechism, and daily readings
                   </Text>
 
                   <Pressable

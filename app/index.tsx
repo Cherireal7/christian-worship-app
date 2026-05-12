@@ -26,7 +26,7 @@ export default function IndexScreen() {
 
         if (value === 'true') {
           // Already onboarded — skip splash & go straight to the app
-          router.replace('/(tabs)');
+          router.replace('/home');
         } else {
           // First time — show splash for 2.5s then go to onboarding
           setChecking(false);

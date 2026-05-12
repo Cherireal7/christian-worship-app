@@ -24,7 +24,7 @@ export function TodayBanner() {
     <Pressable
       onPress={() => {
         setSelectedDate(today.date);
-        router.push(`/calendar/${today.date}`);
+        router.push(`/calendar-detail/${today.date}`);
       }}
       style={[
         styles.card,

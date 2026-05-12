@@ -47,7 +47,7 @@ function DecorativeDivider() {
 type HomeActionCardProps = {
   title: string;
   subtitle: string;
-  href: '/hymn-book' | '/declaration-of-faith';
+  href: '/hymn-book' | '/declaration-of-faith' | '/small-catechism' | string;
   backgroundColor: string;
 };
 
@@ -127,7 +127,7 @@ export default function LibraryHomeScreen() {
             />
           </View>
 
-          <Pressable onPress={() => today && router.push(`/calendar/${today.date}`)} disabled={!today}>
+          <Pressable onPress={() => today && router.push(`/calendar-detail/${today.date}`)} disabled={!today}>
             <ImageBackground
               imageStyle={styles.verseCardImage}
               source={require('../../assets/images/cover.png')}
@@ -151,6 +151,15 @@ export default function LibraryHomeScreen() {
               </Text>
             </ImageBackground>
           </Pressable>
+
+          <View style={[styles.actionsWrap, { marginTop: 14 }]}>
+            <HomeActionCard
+              title="ትንሹ ካቴኪዝም"
+              subtitle="Small Catechism"
+              href="/small-catechism"
+              backgroundColor={actionCardColor}
+            />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -164,12 +173,14 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingBottom: 96,
+    flexGrow: 1,
   },
   heroCard: {
+    flex: 1,
     backgroundColor: '#0B3078',
     paddingHorizontal: 20,
     paddingTop: 0,
-    paddingBottom: 0,
+    paddingBottom: 24,
   },
   settingsButton: {
     position: 'absolute',

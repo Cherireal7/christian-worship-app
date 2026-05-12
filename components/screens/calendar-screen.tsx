@@ -227,7 +227,7 @@ export function CalendarScreen() {
 
   const handleDayPress = ({ dateString }: DateData) => {
     setSelectedDate(dateString);
-    router.push(`/calendar/${dateString}`);
+    router.push(`/calendar-detail/${dateString}`);
   };
 
   const handleMonthChange = ({ year, month }: DateData) => {
@@ -270,7 +270,7 @@ export function CalendarScreen() {
               onPress={() => {
                 if (today) {
                   setSelectedDate(today.date);
-                  router.push(`/calendar/${today.date}`);
+                  router.push(`/calendar-detail/${today.date}`);
                 }
               }}
               style={[styles.todayButton, { backgroundColor: theme.control, borderColor: theme.border }]}
@@ -326,7 +326,7 @@ export function CalendarScreen() {
               </View>
 
               <Pressable
-                onPress={() => router.push(`/calendar/${selectedDay.date}`)}
+                onPress={() => router.push(`/calendar-detail/${selectedDay.date}`)}
                 style={[styles.openButton, { borderColor: selectedAccent }]}
               >
                 <Text style={[styles.openButtonText, { color: selectedAccent, fontSize: 12 * fontScale }]}>

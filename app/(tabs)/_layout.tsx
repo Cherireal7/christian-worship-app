@@ -9,7 +9,7 @@ import {
 import type { ParamListBase, TabNavigationState } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { withLayoutContext } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppPreferences } from '../../components/providers/app-preferences';
@@ -27,7 +27,7 @@ const SwipeableTabs = withLayoutContext<
 
 // ─── Tab config (same as before) ─────────────────────────────────────────────
 const TAB_CONFIG = {
-  index: {
+  home: {
     label: 'መነሻ',
     icon: (color: string) => <Feather name="home" size={24} color={color} />,
   },
@@ -122,7 +122,7 @@ export default function TabsLayout() {
         },
       }}
     >
-      <SwipeableTabs.Screen name="index" options={{ title: 'መነሻ' }} />
+      <SwipeableTabs.Screen name="home" options={{ title: 'መነሻ' }} />
       <SwipeableTabs.Screen name="hymn-book" options={{ title: 'መዝሙር' }} />
       <SwipeableTabs.Screen name="calendar" options={{ title: 'ቀን መቁጠሪያ' }} />
       <SwipeableTabs.Screen name="favorites" options={{ title: 'ተወዳጆች' }} />
@@ -133,11 +133,12 @@ export default function TabsLayout() {
 // ─── Styles (identical to before) ────────────────────────────────────────────
 const styles = StyleSheet.create({
   tabBarOuter: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' as unknown as 'absolute' : 'absolute',
     left: 10,
     right: 10,
     backgroundColor: 'transparent',
     paddingTop: 0,
+    zIndex: 100,
   },
   tabBar: {
     flexDirection: 'row',

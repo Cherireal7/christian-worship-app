@@ -9,25 +9,33 @@ import {
 } from 'expo-notifications/build/NotificationsEmitter';
 import { setNotificationHandler } from 'expo-notifications/build/NotificationsHandler';
 import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppPreferencesProvider, useAppPreferences } from '../components/providers/app-preferences';
 import { LiturgicalProvider } from '../data/LiturgicalContext';
 
-setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+if (Platform.OS !== 'web') {
+  setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 function NotificationObserver() {
   const router = useRouter();
   const lastHandledIdentifier = useRef<string | null>(null);
 
   useEffect(() => {
+    // expo-notifications APIs are not available on web
+    if (Platform.OS === 'web') {
+      return;
+    }
+
     function navigateFromResponse(response: NotificationResponse | null) {
       const identifier = response?.notification.request.identifier;
 

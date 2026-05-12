@@ -68,7 +68,7 @@ export function HymnBookScreen() {
   function renderHymnItem({ item }: { item: Hymn }) {
     return (
       <Pressable
-        onPress={() => router.push(`/hymn-book/${item.id}`)}
+        onPress={() => router.push(`/hymn-detail/${item.id}`)}
         style={[styles.hymnRow, { backgroundColor: theme.surfaceStrong, borderBottomColor: theme.divider }]}
       >
         <View style={styles.hymnNumberWrap}>

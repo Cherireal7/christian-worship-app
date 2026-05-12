@@ -68,7 +68,7 @@ export default function FavoritesScreen() {
                 badge: hymn.number,
                 title: hymn.title,
                 subtitle: 'መዝሙር',
-                route: `/hymn-book/${hymn.id}`,
+                route: `/hymn-detail/${hymn.id}`,
               }
             : null;
         }

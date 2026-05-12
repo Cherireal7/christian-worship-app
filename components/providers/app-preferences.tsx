@@ -1,5 +1,6 @@
 import {
   AppState,
+  Platform,
   type AppStateStatus,
 } from 'react-native';
 import {
@@ -160,6 +161,11 @@ export function AppPreferencesProvider({ children }: PropsWithChildren) {
     let active = true;
 
     async function syncNotifications() {
+      // expo-notifications APIs are not available on web
+      if (Platform.OS === 'web') {
+        return;
+      }
+
       if (!notificationsEnabled) {
         await cancelLiturgicalNotificationsAsync();
         return;
@@ -180,7 +186,8 @@ export function AppPreferencesProvider({ children }: PropsWithChildren) {
   }, [hasHydrated, notificationsEnabled]);
 
   useEffect(() => {
-    if (!hasHydrated || !notificationsEnabled) {
+    // expo-notifications APIs are not available on web
+    if (Platform.OS === 'web' || !hasHydrated || !notificationsEnabled) {
       return;
     }
 

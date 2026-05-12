@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
 
   async function markDoneAndNavigate() {
     await AsyncStorage.setItem(ONBOARDING_DONE_KEY, 'true');
-    router.replace('/(tabs)');
+    router.replace('/home');
   }
 
   function handleNext() {

@@ -20,6 +20,12 @@
     "production": {
       "developmentClient": false,
       "android": {
+        "buildType": "aab"
+      }
+    },
+    "production-apk": {
+      "developmentClient": false,
+      "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
       }

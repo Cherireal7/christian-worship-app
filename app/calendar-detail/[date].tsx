@@ -112,14 +112,17 @@ export default function CalendarDayDetailScreen() {
     try {
       day = getDay(rawDate);
     } catch (error) {
-      console.error('[calendar/detail] Failed to load day:', error);
+      console.error('[calendar-detail] Failed to load day:', error);
       day = null;
     }
   }
 
   if (!day) {
     return (
-      <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <SafeAreaView
+        edges={['top', 'left', 'right', 'bottom']}
+        style={[styles.safeArea, { backgroundColor: theme.background }]}
+      >
         <View style={styles.missingWrap}>
           <Text style={[styles.missingTitle, { color: theme.text }]}>የቀኑ መረጃ አልተገኘም</Text>
           <Pressable onPress={() => router.replace('/calendar')} style={styles.backButton}>
@@ -138,7 +141,10 @@ export default function CalendarDayDetailScreen() {
   const nextDate = dayjs(day.date).add(1, 'day').format('YYYY-MM-DD');
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right', 'bottom']} style={[styles.safeArea, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      edges={['top', 'left', 'right', 'bottom']}
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+    >
       <View style={styles.screen}>
         <ScrollView
           contentContainerStyle={[styles.contentContainer, { paddingBottom: Math.max(insets.bottom, 18) + 96 }]}
@@ -154,9 +160,7 @@ export default function CalendarDayDetailScreen() {
                 <Feather name="arrow-left" size={20} color={theme.text} />
               </Pressable>
             </View>
-            <Text style={[styles.headerTitle, { color: theme.text, fontSize: 22 * fontScale }]}>
-              የቀን ዝርዝር
-            </Text>
+            <Text style={[styles.headerTitle, { color: theme.text, fontSize: 22 * fontScale }]}>የቀን ዝርዝር</Text>
             <View style={styles.headerButtonSpacer} />
           </View>
 
@@ -214,7 +218,7 @@ export default function CalendarDayDetailScreen() {
 
           <View style={styles.navigationRow}>
             <Pressable
-              onPress={() => router.replace(`/calendar/${previousDate}`)}
+              onPress={() => router.replace(`/calendar-detail/${previousDate}`)}
               style={[styles.navigationButton, { backgroundColor: theme.control, borderColor: theme.border }]}
             >
               <Feather name="chevron-left" size={18} color={theme.text} />
@@ -229,7 +233,7 @@ export default function CalendarDayDetailScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => router.replace(`/calendar/${nextDate}`)}
+              onPress={() => router.replace(`/calendar-detail/${nextDate}`)}
               style={[styles.navigationButton, { backgroundColor: theme.control, borderColor: theme.border }]}
             >
               <View style={[styles.navigationCopy, styles.navigationCopyRight]}>
@@ -251,9 +255,24 @@ export default function CalendarDayDetailScreen() {
               backgroundColor={sectionBackground}
               titleColor={theme.text}
             >
-              <ProperRow label="Old Testament" value={day.propers.oldTestament} accent={liturgicalColors.accent} textColor={theme.text} />
-              <ProperRow label="Epistle" value={day.propers.epistle} accent={liturgicalColors.accent} textColor={theme.text} />
-              <ProperRow label="Gospel" value={day.propers.gospel} accent={liturgicalColors.accent} textColor={theme.text} />
+              <ProperRow
+                label="Old Testament"
+                value={day.propers.oldTestament}
+                accent={liturgicalColors.accent}
+                textColor={theme.text}
+              />
+              <ProperRow
+                label="Epistle"
+                value={day.propers.epistle}
+                accent={liturgicalColors.accent}
+                textColor={theme.text}
+              />
+              <ProperRow
+                label="Gospel"
+                value={day.propers.gospel}
+                accent={liturgicalColors.accent}
+                textColor={theme.text}
+              />
               <ProperRow label="Collect" value={cleanedCollect} accent={liturgicalColors.accent} textColor={theme.textMuted} />
               <ProperRow label="Introit" value={cleanedIntroit} accent={liturgicalColors.accent} textColor={theme.textMuted} />
             </Section>
