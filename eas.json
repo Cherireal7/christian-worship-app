@@ -20,7 +20,7 @@
     "production": {
       "developmentClient": false,
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       }
     },
     "production-apk": {
